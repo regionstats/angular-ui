@@ -1,0 +1,27 @@
+<div class="container-fluid">
+    <div class="text-center">
+        <button class="btn btn-primary" (click)="currentView = 'map'">Map</button>
+        <button class="btn btn-primary" (click)="currentView = 'scatterplot'">Scatterplot</button>
+        <button class="btn btn-primary" (click)="currentView = 'coverter'">Convert JSON</button>
+    </div>
+    <div [ngSwitch]="currentView">
+        <map-component *ngSwitchCase="'map'" [stat]="stats[currentStatIndex]"></map-component>
+        <div *ngSwitchCase="'scatterplot'">
+            scatterplot
+        </div>
+        <div *ngSwitchCase="'coverter'">
+            <converter-component></converter-component>
+        </div>
+        <div *ngSwitchDefault>
+            default
+        </div>
+    </div>
+    <table-component [stats]="stats"></table-component>
+</div>
+<ng-template>
+    <textarea [(ngModel)]="textArea"></textarea>
+    <button (click)="parseCSV()">parse</button>
+    <div class="svg-container" #svgContainer>
+        <color-key></color-key>
+    </div>
+</ng-template>

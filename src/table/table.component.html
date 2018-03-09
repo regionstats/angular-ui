@@ -1,0 +1,34 @@
+<div *ngIf="stats && stats.length" style="width:100%">
+    <div class="table-header-static-container" #staticHeader>
+        <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
+    </div>
+    <div *ngIf="fixedHeader" class="table-header-fixed-container">
+        <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
+    </div>
+    <div class="table-body-container">
+        <div class="table-region-column">
+            <div *ngFor="let row of tableRowList" class="table-region-cell">
+                {{row.region}}
+            </div>
+        </div>
+        <div class="table-data">
+            <div *ngFor="let row of tableRowList" class="table-data-row">
+                <div *ngFor="let value of row.values" class="table-data-cell">
+                    {{value}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-template #templateHeader>
+    <div class="table-header-spacer">
+        Region
+    </div>
+    <div class="table-header">
+        <div class="table-header-row">
+            <div *ngFor="let stat of stats" class="table-header-cell">
+                {{stat.title}}
+            </div>
+        </div>
+    </div>
+</ng-template>

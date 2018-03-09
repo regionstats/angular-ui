@@ -1,0 +1,45 @@
+
+$region-width: 10rem;
+$stat-width: 6rem;
+
+.table-header-static-container{
+    display: flex;
+}
+.table-header-fixed-container{
+    position: fixed; top: 0; left: 15px; right: 0;
+    display: flex;
+}
+.table-header-spacer{
+    min-width: $region-width;
+}
+.table-header-row{
+    display: flex;
+}
+.table-header-cell{
+    width: $stat-width;
+    border: 1px solid red;
+}
+
+.table-body-container{
+    display: flex;
+}
+.table-region-column{
+    min-width: $region-width;
+}
+.table-region-cell{
+    border: 1px solid green;
+}
+.table-data{
+    flex: 1;
+    min-width: 1px;
+    //border: 1px solid purple;
+}
+.table-data-row{
+    //border: 1px solid orange;
+    display: flex;
+    width: $stat-width * 6
+}
+.table-data-cell{
+    width: $stat-width;
+    border: 1px solid blue;
+}

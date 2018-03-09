@@ -1,0 +1,27 @@
+<div *ngIf="stats && stats.length">
+    <div class="table-header-container">
+        <div class="table-header-spacer"></div>
+        <div class="table-header">
+            <div class="table-header-cell">
+                Region
+            </div>
+            <div *ngFor="let stat of stats" class="table-header-cell">
+                {{stat.title}}
+            </div>
+        </div>
+    </div>
+    <div class="table-body-container">
+        <div class="table-region-column">
+            <div *ngFor="let row of tableRowList" class="table-region-cell">
+                {{row.region}}
+            </div>
+        </div>
+        <div class="table-data">
+            <div *ngFor="let row of tableRowList" class="table-data-row">
+                <div *ngFor="let value of row.values" class="table-data-cell">
+                    {{value}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
