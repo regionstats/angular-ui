@@ -21,6 +21,7 @@ export class TableComponent {
 
     private scrollFunctionRef: (e) => {};
     private fixedHeader: boolean = false;
+    private scrollContainer: HTMLElement;
     
 
     constructor() {
@@ -28,7 +29,8 @@ export class TableComponent {
 
     ngOnInit() {
         this.scrollFunctionRef = this.scrolled.bind(this);
-        document.addEventListener("scroll", this.scrollFunctionRef);
+        this.scrollContainer = document.getElementById("scroll-container");
+        this.scrollContainer.addEventListener("scroll", this.scrollFunctionRef);
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -39,15 +41,15 @@ export class TableComponent {
 
     scrolled(e: Event) {
         var header = <HTMLDivElement>this.staticHeader.nativeElement;
-        console.log(window.pageYOffset, header.offsetTop)
-        if (!this.fixedHeader && window.pageYOffset > header.offsetTop) {
+        console.log(this.scrollContainer.scrollTop, header.offsetTop)
+        if (!this.fixedHeader && this.scrollContainer.scrollTop > header.offsetTop) {
             //header.setAttribute("style", "position: fixed");
             this.fixedHeader = true;
-            console.log("fixed", window.pageYOffset, header.offsetTop)
-        } else if (this.fixedHeader && window.pageYOffset < header.offsetTop){
+            console.log("fixed", this.scrollContainer.scrollTop, header.offsetTop)
+        } else if (this.fixedHeader && this.scrollContainer.scrollTop < header.offsetTop){
             //header.setAttribute("style", "")
             this.fixedHeader = false;
-            console.log("not fixed", window.pageYOffset, header.offsetTop)
+            console.log("not fixed", this.scrollContainer.scrollTop, header.offsetTop)
         }
     }
 
