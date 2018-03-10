@@ -1,7 +1,7 @@
 import { Page } from '../models/page';
-import { Stat } from '../models/Stat';
-import { Data } from '../models/Data';
-import { Source } from '../models/Source';
+import { Stat } from '../models/stat';
+import { Data } from '../models/data';
+import { Source } from '../models/source';
 import * as Pako from 'pako';
 import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';

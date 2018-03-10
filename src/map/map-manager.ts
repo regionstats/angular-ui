@@ -1,5 +1,5 @@
 import { AsyncSubject, Observable } from "rxjs";
-import { ViewBox } from '../models/viewbox';
+import { ViewBox } from '../models/view-box';
 
 export class MapManager {
     private svgElement: SVGSVGElement;

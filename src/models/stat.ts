@@ -1,5 +1,5 @@
-import { Source } from "./Source";
-import { Data } from "./Data";
+import { Source } from "./source";
+import { Data } from "./data";
 
 export class Stat {
     title: string;

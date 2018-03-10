@@ -2,7 +2,7 @@ import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef } 
 
 import { HttpClient } from '@angular/common/http'
 import { DataService } from '../services/data.service';
-import { Stat } from '../models/Stat';
+import { Stat } from '../models/stat';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { TableRow } from './table-row';

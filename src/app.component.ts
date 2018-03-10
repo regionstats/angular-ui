@@ -5,7 +5,7 @@ import * as Pako from 'pako';
 
 import { HttpClient } from '@angular/common/http'
 import { DataService } from './services/data.service';
-import { Stat } from './models/Stat';
+import { Stat } from './models/stat';
 
 @Component({
     selector: 'app-root',

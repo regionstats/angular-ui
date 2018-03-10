@@ -1,4 +1,4 @@
-import { Stat } from "./Stat";
+import { Stat } from "./stat";
 
 export class Page {
     stats: Stat[];
