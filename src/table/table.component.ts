@@ -13,35 +13,41 @@ import { TableRow } from './table-row';
     styleUrls: ['./table.component.scss']
 })
 export class TableComponent {
-    @Input() stats: Stat[];
     @ViewChild("staticHeader") staticHeader: ElementRef;
+    @ViewChild("tableData") tableData: ElementRef;
 
     public tableRowList: TableRow[] = [];
     public tableRowMap: { [region: string]: TableRow } = {};
+    public stats: Stat[];
+    public scrollLeft: number;
+    public rowWidth: string;
 
-    private scrollFunctionRef: (e) => {};
+    private verticalScrollFunctionRef: (e) => {};
+    private horizontalScrollFunctionRef: (e) => {};
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
-    
 
-    constructor() {
+    constructor(private dateService: DataService) {
     }
 
     ngOnInit() {
-        this.scrollFunctionRef = this.scrolled.bind(this);
+        this.verticalScrollFunctionRef = this.verticallyScrolled.bind(this);
         this.scrollContainer = document.getElementById("scroll-container");
-        this.scrollContainer.addEventListener("scroll", this.scrollFunctionRef);
-    }
+        this.scrollContainer.addEventListener("scroll", this.verticalScrollFunctionRef);
 
-    ngOnChanges(changes: SimpleChanges) {
-        if (this.stats) {
+        this.dateService.getStats().subscribe(stats => {
+            this.stats = stats;
+            this.rowWidth = (stats.length * 6) + "rem";
             this.updateTableRows();
-        }
+            setTimeout(() => {
+                this.horizontalScrollFunctionRef = this.horizontallyScrolled.bind(this);
+                this.tableData.nativeElement.addEventListener("scroll", this.horizontalScrollFunctionRef);
+            });
+        });
     }
 
-    scrolled(e: Event) {
+    verticallyScrolled(e: Event) {
         var header = <HTMLDivElement>this.staticHeader.nativeElement;
-        console.log(this.scrollContainer.scrollTop, header.offsetTop)
         if (!this.fixedHeader && this.scrollContainer.scrollTop > header.offsetTop) {
             //header.setAttribute("style", "position: fixed");
             this.fixedHeader = true;
@@ -51,6 +57,11 @@ export class TableComponent {
             this.fixedHeader = false;
             console.log("not fixed", this.scrollContainer.scrollTop, header.offsetTop)
         }
+    }
+
+    horizontallyScrolled(e: Event) {
+        this.scrollLeft = this.tableData.nativeElement.scrollLeft;
+        console.log("horiz scroll", this.scrollLeft)
     }
 
     updateTableRows() {

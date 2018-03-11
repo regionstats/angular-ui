@@ -16,10 +16,9 @@ import { ViewBox } from '../models/view-box';
     templateUrl: './map.component.html'
 })
 export class MapComponent {
-    @Input() stat: Stat; 
-
     @ViewChild('svgContainer') svgContainer: ElementRef;
 
+    private stat: Stat; 
     public heightStr: string = "80vh";
     private svg: SVGElement;
     private svgRegions: { [name: string]: SVGElement } = {};
@@ -31,7 +30,7 @@ export class MapComponent {
     @Input() midColor: Color;
     @Input() maxColor: Color;
 
-    constructor() {
+    constructor(private dateService: DataService) {
         this.mapManager = new MapManager();
         this.minColor = new Color(255, 255, 255);
         this.midColor = new Color(0, 99, 255);
@@ -39,6 +38,20 @@ export class MapComponent {
     }
 
     ngOnInit() {
+
+        this.dateService.getStats().subscribe(stats => {
+            this.stat = stats[0];
+            if (this.stat) {
+                this.load();
+            }
+        });
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        console.log("changes", changes, this.stat);
+    }
+
+    private load() {
         var url = "assets/US.svg";
         this.mapManager.loadSVG(url).subscribe((svg) => {
             this.svgContainer.nativeElement.appendChild(svg);
@@ -57,12 +70,8 @@ export class MapComponent {
         });
     }
 
-    ngOnChanges(changes: SimpleChanges) {
-        console.log("changes", changes, this.stat);
-    }
-
    // height/width
-    setHeight(ratio: number) {
+    private setHeight(ratio: number) {
         let width = document.getElementById("scroll-container").clientWidth
         let height = document.documentElement.clientHeight;
         let svgHeight = width * ratio;
@@ -73,7 +82,7 @@ export class MapComponent {
         }
     }
 
-    getColor(ratio) {
+    private getColor(ratio) {
         let val: number;
         let newColor: any = {};
         if (ratio >= 0.5) {

@@ -11,8 +11,8 @@
                 {{row.region}}
             </div>
         </div>
-        <div class="table-data">
-            <div *ngFor="let row of tableRowList" class="table-data-row">
+        <div class="table-data" #tableData>
+            <div *ngFor="let row of tableRowList" [style.width]="rowWidth" class="table-data-row">
                 <div *ngFor="let value of row.values" class="table-data-cell">
                     {{value}}
                 </div>
@@ -25,7 +25,7 @@
         Region
     </div>
     <div class="table-header">
-        <div class="table-header-row">
+        <div class="table-header-row" [style.width]="rowWidth" [style.marginLeft.px]="-scrollLeft">
             <div *ngFor="let stat of stats" class="table-header-cell">
                 {{stat.title}}
             </div>

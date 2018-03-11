@@ -76,12 +76,6 @@ export class AppComponent {
 
 
     ngOnInit() {
-
-        this.dataService.statsSubject.subscribe(stats => {
-            console.log("STATS", stats);
-            this.stats = stats;
-            this.currentStatIndex = 0;
-        })
         this.dataService.loadPage();
     }
 

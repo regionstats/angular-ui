@@ -5,7 +5,7 @@
         <button class="btn btn-primary" (click)="currentView = 'converter'">Conversion Utilities</button>
     </div>
     <div [ngSwitch]="currentView">
-        <map-component *ngSwitchCase="'map'" [stat]="stats[currentStatIndex]"></map-component>
+        <map-component *ngSwitchCase="'map'"></map-component>
         <div *ngSwitchCase="'scatterplot'">
             <br>
             <br>
@@ -21,7 +21,7 @@
             default
         </div>
     </div>
-    <table-component [stats]="stats" *ngIf="currentView != 'converter'"></table-component>
+    <table-component *ngIf="currentView != 'converter'"></table-component>
 </div>
 <ng-template>
     <textarea [(ngModel)]="textArea"></textarea>

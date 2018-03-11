@@ -10,11 +10,15 @@ import { ParserService } from './parser.service';
 
 @Injectable()
 export class DataService {
-    public statsSubject: ReplaySubject<Stat[]> = new ReplaySubject<Stat[]>();
-    public page: Page
+    private statsSubject: ReplaySubject<Stat[]> = new ReplaySubject<Stat[]>();
+    private page: Page
 
 
     constructor(private parserService: ParserService) { }
+
+    public getStats(): Observable<Stat[]> {
+        return this.statsSubject.asObservable();
+    }
 
     public loadPage(): void {
         let urlParseResult = this.parserService.tryParseUrlParam(window.location.href);

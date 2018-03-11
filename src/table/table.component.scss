@@ -7,13 +7,16 @@ $stat-width: 6rem;
     background: white;
 }
 .table-header-fixed-container{
-    position: fixed; top: 0; left: 15px; right: 0;
+    position: fixed; top: 0; left: 0; right: 0;
     display: flex;
     background: white;
 }
 .table-header-spacer{
     min-width: $region-width;
     border: 1px solid red;
+}
+.table-header{
+    overflow-x: hidden;
 }
 .table-header-row{
     display: flex;
@@ -35,6 +38,7 @@ $stat-width: 6rem;
 .table-data{
     flex: 1;
     min-width: 1px;
+    overflow-x: auto;
     //border: 1px solid purple;
 }
 .table-data-row{
