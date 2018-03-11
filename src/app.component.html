@@ -2,21 +2,21 @@
     <div class="text-center">
         <button class="btn btn-primary" (click)="currentView = 'map'">Map</button>
         <button class="btn btn-primary" (click)="currentView = 'scatterplot'">Scatterplot</button>
-        <button class="btn btn-primary" (click)="currentView = 'coverter'">Convert JSON</button>
+        <button class="btn btn-primary" (click)="currentView = 'converter'">Conversion Utilities</button>
     </div>
     <div [ngSwitch]="currentView">
         <map-component *ngSwitchCase="'map'" [stat]="stats[currentStatIndex]"></map-component>
         <div *ngSwitchCase="'scatterplot'">
             scatterplot
         </div>
-        <div *ngSwitchCase="'coverter'">
+        <div *ngSwitchCase="'converter'">
             <converter-component></converter-component>
         </div>
         <div *ngSwitchDefault>
-            default
+            default <i class=
         </div>
     </div>
-    <table-component [stats]="stats"></table-component>
+    <table-component [stats]="stats" *ngIf="currentView != 'converter'"></table-component>
 </div>
 <ng-template>
     <textarea [(ngModel)]="textArea"></textarea>

@@ -13,13 +13,13 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 @Injectable()
-export class ParserService{
-    public tryParseUrlParam(): object | string {
-        let index = window.location.href.indexOf("?") + 1;
+export class ParserService {
+    public tryParseUrlParam(url: string, dictionary?: string): object | string {
+        let index = url.indexOf("?") + 1;
         if (!index) {
             return "missing url param";
         }
-        let param = window.location.href.substr(index);
+        let param = url.substr(index);
         if (!param) {
             return "url param is empty";
         }
@@ -28,7 +28,7 @@ export class ParserService{
         if (obj) {
             return obj;
         }
-        let base64Decoded = atob(URIDecoded);
+        let base64Decoded = tryBase64Decode(URIDecoded);
         obj = tryParseObject(base64Decoded);
         if (obj) {
             return obj;
@@ -38,7 +38,22 @@ export class ParserService{
         if (obj) {
             return obj;
         }
+        if (dictionary) {
+            let pakoDictInflated = tryInflate(base64Decoded, dictionary);
+            obj = tryParseObject(pakoDictInflated);
+            if (obj) {
+                return obj;
+            }
+        }
         return "unable to parse url param";
+        function tryBase64Decode(str: any): string {
+            try {
+                return atob(str);
+            } catch (e) {
+                return "";
+            }
+        }
+    
         function tryParseObject(objectStr: any): object {
             try {
                 return JSON.parse(objectStr)
@@ -46,8 +61,11 @@ export class ParserService{
                 return null;
             }
         }
-        function tryInflate(objectStr: any): string {
+        function tryInflate(objectStr: any, dictionary?: string): string {
             try {
+                if (dictionary) {
+                    return Pako.inflate(objectStr, { to: 'string', dictionary: dictionary });
+                }
                 return Pako.inflate(objectStr, { to: 'string' });
             } catch (e) {
                 return "";
@@ -133,7 +151,7 @@ export class ParserService{
             let result = this.tryParseData(element);
             if (result instanceof Data) {
                 dataArray.push(result);
-            } 
+            }
         });
         stat.data = dataArray;
         //REGION NAME

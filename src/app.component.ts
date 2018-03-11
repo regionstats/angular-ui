@@ -83,32 +83,6 @@ export class AppComponent {
             this.currentStatIndex = 0;
         })
         this.dataService.loadPage();
-
-
-        /*
-        this.http.get("https://gateway.ipfs.io/ipfs/QmcAsXG1J3vYW9uNuWYv88Eq7YuGyeDxjaXRLU2BopJtHw").subscribe(e => {
-            console.log(e)
-        }, (e) => { 
-            console.log(e);
-        });
-        */
-
-        
-        /*
-        var dict = 'AlabamaAlaskaArizonaArkansasCaliforniaColoradoConnecticutDelawareFloridaGeorgiaHawaiiIdahoIllinoisIndianaIowaKansasKentuckyLouisianaMaineMarylandMassachusettsMichiganMinnesotaMississippiMissouriMontanaNebraskaNevadaNew HampshireNew JerseyNew MexicoNew YorkNorth CarolinaNorth DakotaOhioOklahomaOregonPennsylvaniaRhode IslandSouth CarolinaSouth DakotaTennesseeTexasUtahVermontVirginiaWashingtonWest VirginiaWisconsinWyomingdistrict of columbiaAfghanistanAlbaniaAlgeriaAmericaAndorraAngolaAntiguaArgentinaArmeniaAustraliaAustriaAzerbaijanBahamasBahrainBangladeshBarbadosBelarusBelgiumBelizeBeninBhutanBissauBoliviaBosniaBotswanaBrazilBritishBruneiBulgariaBurkinaBurmaBurundiCambodiaCameroonCanadaCape VerdeCentral African RepublicChadChileChinaColombiaComorosCongoCosta Ricacountry debtCroatiaCubaCyprusCzechDenmarkDjiboutiDominicaEast TimorEcuadorEgyptEl SalvadorEmirateEnglandEritreaEstoniaEthiopiaFijiFinlandFranceGabonGambiaGeorgiaGermanyGhanaGreat BritainGreeceGrenadaGrenadinesGuatemalaGuineaGuyanaHaitiHerzegovinaHondurasHungaryIcelandin usaIndiaIndonesiaIranIraqIrelandIsraelItalyIvory CoastJamaicaJapanJordanKazakhstanKenyaKiribatiKoreaKosovoKuwaitKyrgyzstanLaosLatviaLebanonLesothoLiberiaLibyaLiechtensteinLithuaniaLuxembourgMacedoniaMadagascarMalawiMalaysiaMaldivesMaliMaltaMarshallMauritaniaMauritiusMexicoMicronesiaMoldovaMonacoMongoliaMontenegroMoroccoMozambiqueMyanmarNamibiaNauruNepalNetherlandsNew ZealandNicaraguaNigerNigeriaNorwayOmanPakistanPalauPanamaPapuaParaguayPeruPhilippinesPolandPortugalQatarRomaniaRussiaRwandaSamoaSan MarinoSao TomeSaudi ArabiascotlandscottishSenegalSerbiaSeychellesSierra LeoneSingaporeSlovakiaSloveniaSolomonSomaliaSouth AfricaSouth SudanSpainSri LankaSt. KittsSt. LuciaSt KittsSt LuciaSaint KittsSanta LuciaSudanSurinameSwazilandSwedenSwitzerlandSyriaTaiwanTajikistanTanzaniaThailandTobagoTogoTongaTrinidadTunisiaTurkeyTurkmenistanTuvaluUgandaUkraineUnited KingdomUnited StatesUruguayUSAUzbekistanVanuatuVaticanVenezuelaVietnamwaleswelshYemenZambiaZimbabwe'
-        
-        console.log("JSON.stringify(this.input)", JSON.stringify(this.input).length, JSON.stringify(this.input))
-        console.log("encodeURIComponent(JSON.stringify(this.input))", encodeURIComponent(JSON.stringify(this.input)).length, encodeURIComponent(JSON.stringify(this.input)))
-        console.log("encodeURIComponent(btoa(JSON.stringify(this.input)))", encodeURIComponent(btoa(JSON.stringify(this.input))).length, encodeURIComponent(btoa(JSON.stringify(this.input))))
-        let url = encodeURIComponent(btoa(Pako.deflate(JSON.stringify(this.input), { to: 'string' })));
-        console.log("encodeURIComponent(btoa(Pako.deflate(JSON.stringify(this.input), {to: 'string'}))", url.length - (url.match(/%/g).length * 3))
-        //console.log("reduce potential", url.match(/%/g).length * 3)
-        console.log("sample url:");
-        console.log("http://localhost:4200/?" + url);
-        
-        var str = 'eJztVE1v2kAQ%2FSsrnxEyBCjNrSVKQ1tIlaSgqsphsCd4ZHsX7a4hNOK%2FZx2ysw6%2B94Tki9%2Fb%2BX4zL5GxYE10%2BfclstFlNKt0itqIDWrRi%2BNOHMdRJ0rfeO34LwWsoASHbaPLYffTocO4yRkeMazpn5Lv%2BKDxXOcgDZiWwQQKelJaEtsMmFKF0pCqI9HvjgMhJSaWksp6jo2usIAdaPSB2OjaOaMUWvg3VHpN7QJvnBuiI9wLz6cpZD4jxoqCpCIu7oIJmRL4bgwZVTvwfj978EejPRfdHsMobZXke09w336qikxw3otD1BmQRB9gFFC9L0CmR2IUQszAGEiyyqC15qSyGSUZrUH6ygaBcCMwykI7DhlTf5vNe%2FPGHzlVafI5BEJJy7U0qpzjSged9UO75rgFP8zG6524gXJjMvICiJsmO%2FHdSR25mR%2BoGT5TorwIx03qj9J5azJzpW0mJqCVGz7L54S%2Bgpx7xPO5zcjHYSgvnKxK3gHWyq3GtZInU%2FmFUpp9sYXG1nDCd5lKUUxNmHVjO%2B5V1Up6dEo3k%2B4HWT1gPXKD2FqVB3z20m2s728LWcvJAnXpZt1SzYLcEjbK4T4uwU1Tri03IfRmicaKE0PmyCRKGpIt5Sz3qnQOPc5FpGSspsQK9SQSVVTlyjvtDZ31YyfSsq5KksVU3LsjinXNuj6ib3%2FuZ%2B88xr1BJ3L39Xher79OxURTieION04S4dGhDlw%2FWfTF%2BQifj%2FD5CJ%2BP8PkI%2F%2Fcj%2FHh4BeVoPBs%3D'
-        console.log("decompressed url", Pako.inflate(atob(decodeURIComponent(str)), { to: 'string'}))
-        */
     }
 
 

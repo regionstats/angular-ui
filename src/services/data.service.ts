@@ -17,7 +17,7 @@ export class DataService {
     constructor(private parserService: ParserService) { }
 
     public loadPage(): void {
-        let urlParseResult = this.parserService.tryParseUrlParam();
+        let urlParseResult = this.parserService.tryParseUrlParam(window.location.href);
         if (typeof urlParseResult == "string") {
             console.log("failed to get urlParam", urlParseResult)
         } else {
