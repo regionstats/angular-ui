@@ -9,6 +9,7 @@ import { DataService } from '../services/data.service';
 import { Stat } from '../models/stat';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
+import { ViewBox } from '../models/view-box';
 
 @Component({
     selector: 'map-component',
@@ -18,42 +19,14 @@ export class MapComponent {
     @Input() stat: Stat; 
 
     @ViewChild('svgContainer') svgContainer: ElementRef;
-    @ViewChild('colorKey') colorKey: ElementRef;
 
-    public background: string;
-
+    public heightStr: string = "80vh";
     private svg: SVGElement;
     private svgRegions: { [name: string]: SVGElement } = {};
     private mapManager: MapManager
 
     public currentView: string = "map";
 
-    private input = {
-        "stats": [
-            {
-                "t": "Murders per 100,000",
-                "d": [{ "r": "Alabama", "v": 5.7 }, { "r": "Alaska", "v": 5.6 }, { "r": "Arizona", "v": 4.7 }, { "r": "Arkansas", "v": 5.6 }, { "r": "California", "v": 4.4 }, { "r": "Colorado", "v": 2.8 }, { "r": "Connecticut", "v": 2.4 }, { "r": "Delaware", "v": 5.8 }, { "r": "Florida", "v": 5.8 }, { "r": "Georgia", "v": 5.7 }, { "r": "Hawaii", "v": 1.8 }, { "r": "Idaho", "v": 2 }, { "r": "Illinois", "v": 5.3 }, { "r": "Indiana", "v": 5 }, { "r": "Iowa", "v": 1.9 }, { "r": "Kansas", "v": 3.1 }, { "r": "Kentucky", "v": 3.6 }, { "r": "Louisiana", "v": 10.3 }, { "r": "Maine", "v": 1.6 }, { "r": "Maryland", "v": 6.1 }, { "r": "Massachusetts", "v": 2 }, { "r": "Michigan", "v": 5.4 }, { "r": "Minnesota", "v": 1.6 }, { "r": "Mississippi", "v": 8.6 }, { "r": "Missouri", "v": 6.6 }, { "r": "Montana", "v": 3.6 }, { "r": "Nebraska", "v": 2.9 }, { "r": "Nevada", "v": 6 }, { "r": "New Hampshire", "v": 0.9 }, { "r": "New Jersey", "v": 3.9 }, { "r": "New Mexico", "v": 4.8 }, { "r": "New York", "v": 3.1 }, { "r": "North Carolina", "v": 5.1 }, { "r": "North Dakota", "v": 3 }, { "r": "Ohio", "v": 4 }, { "r": "Oklahoma", "v": 4.5 }, { "r": "Oregon", "v": 2 }, { "r": "Pennsylvania", "v": 4.8 }, { "r": "Rhode Island", "v": 2.4 }, { "r": "South Carolina", "v": 6.4 }, { "r": "South Dakota", "v": 2.3 }, { "r": "Tennessee", "v": 5.7 }, { "r": "Texas", "v": 4.4 }, { "r": "Utah", "v": 2.3 }, { "r": "Vermont", "v": 1.6 }, { "r": "Virginia", "v": 4.1 }, { "r": "Washington", "v": 2.5 }, { "r": "West Virginia", "v": 4 }, { "r": "Wisconsin", "v": 2.9 }, { "r": "Wyoming", "v": 2.7 }, { "r": "district of columbia", "v": 15.9 }],
-                "rn": "United States",
-                "rt": "State",
-                "y": 2014,
-                "s": {
-                    "t": "FBI Crime Report",
-                    "y": 2014
-                }
-            },
-            {
-                "t": "V2 Murders per 100,000",
-                "d": [{ "r": "Alabama", "v": 5.7 }, { "r": "Alaska", "v": 5.6 }, { "r": "Arizona", "v": 4.7 }, { "r": "Arkansas", "v": 5.6 }, { "r": "California", "v": 4.4 }, { "r": "Colorado", "v": 2.8 }, { "r": "Connecticut", "v": 2.4 }, { "r": "Delaware", "v": 5.8 }, { "r": "Florida", "v": 5.8 }, { "r": "Georgia", "v": 5.7 }, { "r": "Hawaii", "v": 1.8 }, { "r": "Idaho", "v": 2 }, { "r": "Illinois", "v": 5.3 }, { "r": "Indiana", "v": 5 }, { "r": "Iowa", "v": 1.9 }, { "r": "Kansas", "v": 3.1 }, { "r": "Kentucky", "v": 3.6 }, { "r": "Louisiana", "v": 10.3 }, { "r": "Maine", "v": 1.6 }, { "r": "Maryland", "v": 6.1 }, { "r": "Massachusetts", "v": 2 }, { "r": "Michigan", "v": 5.4 }, { "r": "Minnesota", "v": 1.6 }, { "r": "Mississippi", "v": 8.6 }, { "r": "Missouri", "v": 6.6 }, { "r": "Montana", "v": 3.6 }, { "r": "Nebraska", "v": 2.9 }, { "r": "Nevada", "v": 6 }, { "r": "New Hampshire", "v": 0.9 }, { "r": "New Jersey", "v": 3.9 }, { "r": "New Mexico", "v": 4.8 }, { "r": "New York", "v": 3.1 }, { "r": "North Carolina", "v": 5.1 }, { "r": "North Dakota", "v": 3 }, { "r": "Ohio", "v": 4 }, { "r": "Oklahoma", "v": 4.5 }, { "r": "Oregon", "v": 2 }, { "r": "Pennsylvania", "v": 4.8 }, { "r": "Rhode Island", "v": 2.4 }, { "r": "South Carolina", "v": 6.4 }, { "r": "South Dakota", "v": 2.3 }, { "r": "Tennessee", "v": 5.7 }, { "r": "Texas", "v": 4.4 }, { "r": "Utah", "v": 2.3 }, { "r": "Vermont", "v": 1.6 }, { "r": "Virginia", "v": 4.1 }, { "r": "Washington", "v": 2.5 }, { "r": "West Virginia", "v": 4 }, { "r": "Wisconsin", "v": 2.9 }, { "r": "Wyoming", "v": 2.7 }, { "r": "district of columbia", "v": 15.9 }],
-                "rn": "United States",
-                "rt": "State",
-                "y": 2014,
-                "s": {
-                    "t": "FBI Crime Report",
-                    "y": 2014
-                }
-            }
-        ]
-    }
     @Input() minColor: Color;
     @Input() midColor: Color;
     @Input() maxColor: Color;
@@ -66,8 +39,6 @@ export class MapComponent {
     }
 
     ngOnInit() {
-        this.background = `linear-gradient(${this.minColor.toString()},${this.midColor.toString()},${this.maxColor.toString()})`;   
-
         var url = "assets/US.svg";
         this.mapManager.loadSVG(url).subscribe((svg) => {
             this.svgContainer.nativeElement.appendChild(svg);
@@ -82,6 +53,7 @@ export class MapComponent {
                 colors[this.stat.data[key].region.toLowerCase()] = this.getColor(ratio);
             }
             this.mapManager.setColors(colors);
+            this.setHeight(this.mapManager.getViewBoxRatio());
         });
     }
 
@@ -89,8 +61,17 @@ export class MapComponent {
         console.log("changes", changes, this.stat);
     }
 
-
-
+   // height/width
+    setHeight(ratio: number) {
+        let width = document.getElementById("scroll-container").clientWidth
+        let height = document.documentElement.clientHeight;
+        let svgHeight = width * ratio;
+        if (svgHeight < height * .8 ) {
+            this.heightStr = svgHeight + "px";
+        } else {
+            this.heightStr = "80vh";
+        }
+    }
 
     getColor(ratio) {
         let val: number;

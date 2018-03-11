@@ -7,13 +7,18 @@
     <div [ngSwitch]="currentView">
         <map-component *ngSwitchCase="'map'" [stat]="stats[currentStatIndex]"></map-component>
         <div *ngSwitchCase="'scatterplot'">
-            scatterplot
+            <br>
+            <br>
+            <br> scatterplot not implemented yet
+            <br>
+            <br>
+            <br>
         </div>
         <div *ngSwitchCase="'converter'">
             <converter-component></converter-component>
         </div>
         <div *ngSwitchDefault>
-            default <i class=
+            default
         </div>
     </div>
     <table-component [stats]="stats" *ngIf="currentView != 'converter'"></table-component>

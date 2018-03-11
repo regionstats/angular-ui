@@ -4,10 +4,10 @@ export class ViewBox {
     right: number;
     bottom: number;
 
-    get width(): number {
+    width(): number {
         return this.right - this.left;
     }
-    get height(): number{
+    height(): number{
         return this.bottom - this.top;
     }
     constructor(svg: SVGSVGElement) {

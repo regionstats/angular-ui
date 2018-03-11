@@ -13,6 +13,12 @@ export class MapManager {
     public getSVG(): SVGSVGElement {
         return this.svgElement;
     }
+
+    /** returns height/width */
+    public getViewBoxRatio(): number{
+        return this.viewBox.height() / this.viewBox.width();
+    }
+
     public loadSVG(url: string): Observable<SVGSVGElement> {
         let subject = new AsyncSubject<SVGSVGElement>();
         let objectElement = document.createElement("object");
@@ -100,7 +106,7 @@ export class MapManager {
     }
 
     private getShadowFilter(): SVGFilterElement {
-        let offset = Math.sqrt(this.viewBox.width * this.viewBox.width + this.viewBox.height * this.viewBox.height) / 500;
+        let offset = Math.sqrt(this.viewBox.width() * this.viewBox.width() + this.viewBox.height() * this.viewBox.height()) / 500;
 
         let filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
         filter.setAttribute("id", "shadow");
@@ -131,12 +137,12 @@ export class MapManager {
         let widthRatio = 0.07;
         let group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("width", (this.viewBox.height * widthRatio).toString());
-        rect.setAttribute("height", (this.viewBox.height * (1 - 2 * paddingRatio)).toString());
-        rect.setAttribute("x", (this.viewBox.width + this.viewBox.height * paddingRatio).toString());
-        rect.setAttribute("y", (this.viewBox.height * paddingRatio).toString());
+        rect.setAttribute("width", (this.viewBox.height() * widthRatio).toString());
+        rect.setAttribute("height", (this.viewBox.height() * (1 - 2 * paddingRatio)).toString());
+        rect.setAttribute("x", (this.viewBox.width() + this.viewBox.height() * paddingRatio).toString());
+        rect.setAttribute("y", (this.viewBox.height() * paddingRatio).toString());
         //rect.setAttribute("fill", "red");
-        this.viewBox.right = this.viewBox.right + (this.viewBox.height * widthRatio) + (this.viewBox.height * paddingRatio * 2);
+        this.viewBox.right = this.viewBox.right + (this.viewBox.height() * widthRatio) + (this.viewBox.height() * paddingRatio * 2);
         group.appendChild(rect);
         return group;
     }
@@ -150,12 +156,16 @@ export class MapManager {
         linearGradient.setAttribute("y2", "100%");
         let stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
         stop1.setAttribute("offset", "0%");
-        stop1.setAttribute("style", "stop-color:#ffffff;stop-opacity:1");
+        stop1.setAttribute("style", "stop-color:#e0ecff;stop-opacity:1");
         let stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-        stop2.setAttribute("offset", "100%");
-        stop2.setAttribute("style", "stop-color:#00ffff;stop-opacity:1");
+        stop2.setAttribute("offset", "50%");
+        stop2.setAttribute("style", "stop-color:#0063ff;stop-opacity:1");
+        let stop3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+        stop3.setAttribute("offset", "100%");
+        stop3.setAttribute("style", "stop-color:#000608;stop-opacity:1");
         linearGradient.appendChild(stop1);
         linearGradient.appendChild(stop2);
+        linearGradient.appendChild(stop3);
         return linearGradient;
     }
 }
