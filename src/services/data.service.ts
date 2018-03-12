@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { ParserService } from './parser.service';
+import { Calculation } from '../models/calculation';
 
 
 @Injectable()
@@ -31,11 +32,12 @@ export class DataService {
                     this.statsSubject.next(null);
                 } else {
                     this.page = page;
+                    page.stats.forEach(z => {
+                        z.calc = new Calculation(z.data);
+                    })
                     this.statsSubject.next(page.stats);
                 }
             })
         }
     }
-
-    
 }

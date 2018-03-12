@@ -62,7 +62,7 @@ export class MapManager {
             if (this.regions[key]) {
                 this.regions[key].setAttribute("fill", obj[key]);
             } else {
-                console.log("not found:", key)
+                //console.log("not found:", key)
             }
         }
     }
@@ -83,13 +83,13 @@ export class MapManager {
                 this.copySVGAttributes(<SVGElement>unsafeChild, el);
                 safe.appendChild(el);
             } else {
-                console.log("unsupported tag", unsafeChild.tagName, unsafeChild.children.length)
+                //console.log("unsupported tag", unsafeChild.tagName, unsafeChild.children.length)
             }
         }
     }
 
-
-   //europe.svg ["d", "id", "style", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "sodipodi:nodetypes", "inkscape:connector-curvature", "transform", "y", "x", "height", "width", "clip-path"]
+    //tags in popular wikipedia maps:
+    //europe.svg ["d", "id", "style", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "sodipodi:nodetypes", "inkscape:connector-curvature", "transform", "y", "x", "height", "width", "clip-path"]
     //US.svg ["name", "fill", "d", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "id", "stroke", "stroke-width", "cx", "cy", "r", "opacity"]
     private svgAttributes = ["d", "style", "fill", "item", "transform", "stroke", "stroke-width", "y", "x", "cx", "cy", "r", "height", "width"]
     private copySVGAttributes(unsafe: SVGElement, safe: SVGElement) {

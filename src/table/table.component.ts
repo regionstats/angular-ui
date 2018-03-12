@@ -65,6 +65,8 @@ export class TableComponent {
     }
 
     updateTableRows() {
+        this.tableRowList = [];
+        this.tableRowMap = {};
         this.stats.forEach(stat => {
             stat.data.forEach(data => {
                 var tableRow = this.tableRowMap[data.region];

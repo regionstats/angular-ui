@@ -7,12 +7,7 @@
     <div [ngSwitch]="currentView">
         <map-component *ngSwitchCase="'map'"></map-component>
         <div *ngSwitchCase="'scatterplot'">
-            <br>
-            <br>
-            <br> scatterplot not implemented yet
-            <br>
-            <br>
-            <br>
+            <scatterplot-component></scatterplot-component>
         </div>
         <div *ngSwitchCase="'converter'">
             <converter-component></converter-component>

@@ -8,7 +8,8 @@ import { AppComponent } from './app.component';
 import { ColorKeyComponent } from './color-key/color-key.component';
 import { MapComponent } from './map/map.component';
 import { TableComponent } from './table/table.component';
-import { ConverterComponent } from './converter/converter.component'
+import { ConverterComponent } from './converter/converter.component';
+import { ScatterplotComponent } from './scatterplot/scatterplot.component';
 
 @NgModule({
     declarations: [
@@ -16,7 +17,8 @@ import { ConverterComponent } from './converter/converter.component'
         ColorKeyComponent,
         MapComponent,
         TableComponent,
-        ConverterComponent
+        ConverterComponent,
+        ScatterplotComponent
     ],
     imports: [
         BrowserModule,
