@@ -6,7 +6,7 @@
         <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
     </div>
     <div class="table-body-container">
-        <div class="table-region-column">
+        <div class="table-region-column" [class.shadow]="scrollLeft">
             <div *ngFor="let row of tableRowList" class="table-region-cell">
                 {{row.region}}
             </div>
@@ -21,11 +21,11 @@
     </div>
 </div>
 <ng-template #templateHeader>
-    <div class="table-header-spacer">
+    <div class="table-header-spacer" [class.shadow]="scrollLeft">
         Region
     </div>
     <div class="table-header">
-        <div class="table-header-row" [style.width]="rowWidth" [style.marginLeft.px]="-scrollLeft">
+        <div class="table-header-row" [style.width]="rowWidth">
             <div *ngFor="let stat of stats" class="table-header-cell">
                 {{stat.title}}
             </div>

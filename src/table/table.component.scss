@@ -1,19 +1,45 @@
 
 $region-width: 10rem;
 $stat-width: 6rem;
+$border-color: #ccc;
 
 .table-header-static-container{
     display: flex;
     background: white;
 }
 .table-header-fixed-container{
+    z-index: 200;
     position: fixed; top: 0; left: 0; right: 0;
     display: flex;
     background: white;
+    .table-header-spacer{
+        z-index: 200;
+        border-bottom: none;
+        box-shadow: inset 0 0 0 0.2rem white, 0 0.2rem 0.2rem gray;
+        &.shadow{
+            box-shadow: inset 0 0 0 0.2rem white, 0 0.2rem 0.2rem gray, 0.1rem 0 0.1rem gray;
+        }
+    }
+    .table-header{
+        z-index: 100;
+        border-bottom: none;
+        box-shadow: 0 0.2rem 0.2rem gray;
+    }
+    .table-header-cell{
+        border-bottom: none;
+    }
 }
+
 .table-header-spacer{
     min-width: $region-width;
-    border: 1px solid red;
+    border-top: 1px solid $border-color;
+    border-left: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+    &.shadow{
+        box-shadow: 0.1rem 0 0.1rem gray;
+    }
 }
 .table-header{
     overflow-x: hidden;
@@ -23,17 +49,30 @@ $stat-width: 6rem;
 }
 .table-header-cell{
     width: $stat-width;
-    border: 1px solid red;
+    border-top: 1px solid $border-color;
+    border-left: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    &:last-child{
+        border-right: 1px solid $border-color;
+    }
 }
 
 .table-body-container{
     display: flex;
 }
 .table-region-column{
+    z-index: 50;
     min-width: $region-width;
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+    &.shadow{
+        box-shadow: 0.1rem 0 0.1rem gray;
+    }
+    
 }
 .table-region-cell{
-    border: 1px solid green;
+    border-left: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
 }
 .table-data{
     flex: 1;
@@ -48,5 +87,9 @@ $stat-width: 6rem;
 }
 .table-data-cell{
     width: $stat-width;
-    border: 1px solid blue;
+    border-left: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    &:last-child{
+        border-right: 1px solid $border-color;
+    }
 }

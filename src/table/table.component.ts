@@ -19,8 +19,8 @@ export class TableComponent {
     public tableRowList: TableRow[] = [];
     public tableRowMap: { [region: string]: TableRow } = {};
     public stats: Stat[];
-    public scrollLeft: number;
     public rowWidth: string;
+    public scrollLeft: number;
 
     private verticalScrollFunctionRef: (e) => {};
     private horizontalScrollFunctionRef: (e) => {};
@@ -61,7 +61,10 @@ export class TableComponent {
 
     horizontallyScrolled(e: Event) {
         this.scrollLeft = this.tableData.nativeElement.scrollLeft;
-        console.log("horiz scroll", this.scrollLeft)
+        let headerRows = document.getElementsByClassName("table-header-row");
+        for (var i = 0; i < headerRows.length; i++){
+            headerRows[i].setAttribute("style", `margin-left: ${-this.scrollLeft}px; width: ${this.rowWidth};`);
+        }
     }
 
     updateTableRows() {
