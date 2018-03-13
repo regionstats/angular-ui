@@ -100,6 +100,7 @@ export class MapManager {
                 if (this.svgAttributes.indexOf(attr.name) >= 0) {
                     safe.setAttribute(attr.name, attr.value);
                 } else if (attr.name == "name") {
+                    safe.setAttribute("class", "trans");
                     safe.setAttribute("id", "rs-" + attr.value)
                     this.regions[attr.value] = true;
                 }
