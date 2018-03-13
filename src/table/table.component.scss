@@ -2,6 +2,23 @@
 $region-width: 10rem;
 $stat-width: 6rem;
 $border-color: #ccc;
+.component-container{
+    width: 100%;
+    position: relative;
+    margin-top: 0.2rem;
+}
+
+.primary-line{
+    position: absolute;
+    top: 0;
+    height: 0.2rem;
+    width: 6rem;
+    left: -6rem;
+    z-index: -1;
+    background-color: #0063ff;
+    box-shadow: 0 -0.2rem 0 #0063ff;
+    transition: left 0.2s ease-out
+}
 
 .table-header-static-container{
     display: flex;
@@ -55,6 +72,7 @@ $border-color: #ccc;
     &:last-child{
         border-right: 1px solid $border-color;
     }
+    cursor: pointer;
 }
 
 .table-body-container{

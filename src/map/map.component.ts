@@ -10,6 +10,7 @@ import { Stat } from '../models/stat';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { ViewBox } from '../models/view-box';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
     selector: 'map-component',
@@ -18,7 +19,7 @@ import { ViewBox } from '../models/view-box';
 export class MapComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
 
-    private stat: Stat; 
+    private stat: Stat;
     public heightStr: string = "80vh";
     private svg: SVGElement;
     private svgRegions: { [name: string]: SVGElement } = {};
@@ -32,12 +33,41 @@ export class MapComponent {
 
     constructor(private dateService: DataService) {
         this.mapManager = new MapManager();
-        this.minColor = new Color(255, 255, 255);
+        this.minColor = new Color(224, 236, 255);
         this.midColor = new Color(0, 99, 255);
         this.maxColor = new Color(0, 16, 35);
     }
 
     ngOnInit() {
+        this.load().subscribe(() => {
+            // let range = stat.max - calcResults.min;
+            // for(var key in this.stat.data){
+            //     zScores[key.toLowerCase()] = (this.stat.data[key].value - calcResults.mean) / calcResults.sd;
+            //     let ratio = (this.stat.data[key].value - 0) / range
+            //     colors[this.stat.data[key].region.toLowerCase()] = this.getColor(ratio);
+            // }
+            // this.mapManager.setColors(colors);
+
+            this.dateService.getStats().combineLatest(this.dateService.getPrimaryIndex()).subscribe(arr => {
+                let stats = arr[0];
+                let index = arr[1];
+                this.stat = stats[index];
+                if (this.stat) {
+                    let calc = this.stat.calc;
+                    let range = calc.max.value - calc.min.value;
+                    let zScores = {}
+                    let colors = {}
+                    for (var key in this.stat.data) {
+                        zScores[key.toLowerCase()] = (this.stat.data[key].value - calc.mean) / calc.sd;
+                        let ratio = (this.stat.data[key].value - calc.min.value) / range
+                        colors[this.stat.data[key].region.toLowerCase()] = this.getColor(ratio);
+                    }
+                    this.mapManager.setColors(colors);
+                }
+            })
+
+        });
+
 
         this.dateService.getStats().subscribe(stats => {
             this.stat = stats[0];
@@ -53,29 +83,18 @@ export class MapComponent {
 
     private load() {
         var url = "assets/US.svg";
-        this.mapManager.loadSVG(url).subscribe((svg) => {
+        return this.mapManager.loadSVG(url).map((svg) => {
             this.svgContainer.nativeElement.appendChild(svg);
-            let calcResults = this.calcStdDev(this.stat.data.map(z => z.value));
-            let zScores = {}
-            let colors = {}
-            console.log(calcResults)
-            let range = calcResults.max - calcResults.min;
-            for(var key in this.stat.data){
-                zScores[key.toLowerCase()] = (this.stat.data[key].value - calcResults.mean) / calcResults.sd;
-                let ratio = (this.stat.data[key].value - 0) / range
-                colors[this.stat.data[key].region.toLowerCase()] = this.getColor(ratio);
-            }
-            this.mapManager.setColors(colors);
             this.setHeight(this.mapManager.getViewBoxRatio());
         });
     }
 
-   // height/width
+    // height/width
     private setHeight(ratio: number) {
         let width = document.getElementById("scroll-container").clientWidth
         let height = document.documentElement.clientHeight;
         let svgHeight = width * ratio;
-        if (svgHeight < height * .8 ) {
+        if (svgHeight < height * .8) {
             this.heightStr = svgHeight + "px";
         } else {
             this.heightStr = "80vh";

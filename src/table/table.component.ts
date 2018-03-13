@@ -13,21 +13,23 @@ import { TableRow } from './table-row';
     styleUrls: ['./table.component.scss']
 })
 export class TableComponent {
-    @ViewChild("staticHeader") staticHeader: ElementRef;
+    @ViewChild("componentContainer") componentContainer: ElementRef;
     @ViewChild("tableData") tableData: ElementRef;
+    @ViewChild("primaryLine") primaryLine: ElementRef;
 
     public tableRowList: TableRow[] = [];
     public tableRowMap: { [region: string]: TableRow } = {};
     public stats: Stat[];
     public rowWidth: string;
     public scrollLeft: number;
+    public primaryLineLeft: string;
 
     private verticalScrollFunctionRef: (e) => {};
     private horizontalScrollFunctionRef: (e) => {};
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
 
-    constructor(private dateService: DataService) {
+    constructor(private dataService: DataService) {
     }
 
     ngOnInit() {
@@ -35,7 +37,10 @@ export class TableComponent {
         this.scrollContainer = document.getElementById("scroll-container");
         this.scrollContainer.addEventListener("scroll", this.verticalScrollFunctionRef);
 
-        this.dateService.getStats().subscribe(stats => {
+        this.dataService.getPrimaryIndex().subscribe((index) => {
+            this.primaryLineLeft = (10 + 6 * index) + "rem";
+        });
+        this.dataService.getStats().subscribe(stats => {
             this.stats = stats;
             this.rowWidth = (stats.length * 6) + "rem";
             this.updateTableRows();
@@ -46,16 +51,17 @@ export class TableComponent {
         });
     }
 
+    headerClicked(event: MouseEvent, index: number) {
+        this.dataService.setPrimaryIndex(index);
+    }
     verticallyScrolled(e: Event) {
-        var header = <HTMLDivElement>this.staticHeader.nativeElement;
+        var header = <HTMLDivElement>this.componentContainer.nativeElement;
         if (!this.fixedHeader && this.scrollContainer.scrollTop > header.offsetTop) {
             //header.setAttribute("style", "position: fixed");
             this.fixedHeader = true;
-            console.log("fixed", this.scrollContainer.scrollTop, header.offsetTop)
         } else if (this.fixedHeader && this.scrollContainer.scrollTop < header.offsetTop){
             //header.setAttribute("style", "")
             this.fixedHeader = false;
-            console.log("not fixed", this.scrollContainer.scrollTop, header.offsetTop)
         }
     }
 

@@ -6,7 +6,7 @@ export class MapManager {
     private mapGroup: SVGGElement;
     private colorKeyGroup: SVGGElement;
     private defs: SVGDefsElement
-    private regions: { [name: string]: SVGElement } = {};
+    private regions: { [name: string]: boolean } = {};
     private viewBox: ViewBox;
     private gradient: SVGLinearGradientElement;
 
@@ -60,9 +60,10 @@ export class MapManager {
     public setColors(obj) {
         for(var key in obj) {
             if (this.regions[key]) {
-                this.regions[key].setAttribute("fill", obj[key]);
-            } else {
-                //console.log("not found:", key)
+                let region = document.getElementById("rs-" + key);
+                if (region) {
+                    region.setAttribute("fill",obj[key]);
+                }
             }
         }
     }
@@ -99,7 +100,8 @@ export class MapManager {
                 if (this.svgAttributes.indexOf(attr.name) >= 0) {
                     safe.setAttribute(attr.name, attr.value);
                 } else if (attr.name == "name") {
-                    this.regions[attr.value] = safe;
+                    safe.setAttribute("id", "rs-" + attr.value)
+                    this.regions[attr.value] = true;
                 }
             }
         }
