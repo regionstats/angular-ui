@@ -13,7 +13,7 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable()
 export class DataService {
     private statsSubject: ReplaySubject<Stat[]> = new ReplaySubject<Stat[]>();
-    private primaryIndexSubject: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+    private selectedIndexesSubject: BehaviorSubject<number[]> = new BehaviorSubject<number[]>([0, 1]);
     private page: Page
 
     constructor(private parserService: ParserService) { }
@@ -22,13 +22,14 @@ export class DataService {
         return this.statsSubject.asObservable();
     }
 
-    public getPrimaryIndex(): Observable<number>{
-        return this.primaryIndexSubject.asObservable();
+    public getSelectedIndexes(): Observable<number[]>{
+        return this.selectedIndexesSubject.asObservable();
     }
 
-    public setPrimaryIndex(index: number) {
-        if (index >= 0 && index < this.page.stats.length)
-        this.primaryIndexSubject.next(index);
+    public setSelectedIndexes(indexes: number[]) {
+        if (indexes.length > 0 && indexes.every(i => i >= 0 && i < this.page.stats.length)) {
+            this.selectedIndexesSubject.next(indexes);
+        }
     }
 
     public loadPage(): void {

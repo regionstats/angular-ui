@@ -1,5 +1,6 @@
 <div *ngIf="stats && stats.length" class="component-container" #componentContainer>
-    <div class="primary-line" #primaryLine [style.left]="primaryLineLeft"></div>
+    <div class="line primary-line" #primaryLine [style.left]="primaryLineLeft"></div>
+    <div class="line secondary-line" #secondaryLine [style.left]="secondaryLineLeft"></div>
     <div class="table-header-static-container">
         <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
     </div>

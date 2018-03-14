@@ -51,7 +51,6 @@ export class ScatterplotComponent {
         this.svgElement.setAttribute("viewBox", "0 0 10000 10000");
         this.svgContainer.nativeElement.appendChild(this.svgElement);
 
-
         this.dateService.getStats().subscribe(stats => {
             this.statX = stats[0];
             this.statY = stats[1];
@@ -60,11 +59,18 @@ export class ScatterplotComponent {
                 this.updateDotGroup();
                 this.updateLineGroup();
             }
+            setTimeout(() => {
+                this.dotArray.forEach(dot => {
+                    let el = document.getElementById("rs-" + dot.region);
+                    console.log(el);
+                    el.setAttribute("cx", "5000");
+                    el.setAttribute("cy", "5000");
+                });
+            }, 1000)
         });
     }
 
     private load() {
-
         this.setHeight();
     }
 
@@ -135,6 +141,8 @@ export class ScatterplotComponent {
             circle.setAttribute("r", "100");
             circle.setAttribute("cx", (5000 + this.zRatio * dot.x).toString());
             circle.setAttribute("cy", (5000 - this.zRatio * dot.y).toString())
+            circle.setAttribute("id", "rs-" + dot.region);
+            circle.setAttribute("class", "circle-trans");
             this.dotGroup.appendChild(circle);
         })
     }

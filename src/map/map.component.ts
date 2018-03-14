@@ -48,10 +48,10 @@ export class MapComponent {
             // }
             // this.mapManager.setColors(colors);
 
-            this.dateService.getStats().combineLatest(this.dateService.getPrimaryIndex()).subscribe(arr => {
+            this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
                 let stats = arr[0];
-                let index = arr[1];
-                this.stat = stats[index];
+                let indexes = arr[1];
+                this.stat = stats[indexes[0]];
                 if (this.stat) {
                     let calc = this.stat.calc;
                     let range = calc.max.value - calc.min.value;

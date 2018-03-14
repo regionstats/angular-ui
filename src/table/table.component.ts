@@ -13,9 +13,12 @@ import { TableRow } from './table-row';
     styleUrls: ['./table.component.scss']
 })
 export class TableComponent {
+    @Input("indexCount") indexCount: number;
+
     @ViewChild("componentContainer") componentContainer: ElementRef;
     @ViewChild("tableData") tableData: ElementRef;
     @ViewChild("primaryLine") primaryLine: ElementRef;
+    @ViewChild("secondaryLine") secondaryLine: ElementRef;
 
     public tableRowList: TableRow[] = [];
     public tableRowMap: { [region: string]: TableRow } = {};
@@ -23,11 +26,13 @@ export class TableComponent {
     public rowWidth: string;
     public scrollLeft: number;
     public primaryLineLeft: string;
+    public secondaryLineLeft: string;
 
     private verticalScrollFunctionRef: (e) => {};
     private horizontalScrollFunctionRef: (e) => {};
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
+    private selectedIndexes: number[];
 
     constructor(private dataService: DataService) {
     }
@@ -37,8 +42,14 @@ export class TableComponent {
         this.scrollContainer = document.getElementById("scroll-container");
         this.scrollContainer.addEventListener("scroll", this.verticalScrollFunctionRef);
 
-        this.dataService.getPrimaryIndex().subscribe((index) => {
-            this.primaryLineLeft = (10 + 6 * index) + "rem";
+        this.dataService.getSelectedIndexes().subscribe((indexes) => {
+            this.selectedIndexes = indexes;
+            this.primaryLineLeft = (10 + 6 * indexes[0]) + "rem";
+            if (this.indexCount >= 2) {
+                this.secondaryLineLeft = (10 + 6 * indexes[1]) + "rem";
+            } else {
+                this.secondaryLineLeft = "-6rem";
+            }
         });
         this.dataService.getStats().subscribe(stats => {
             this.stats = stats;
@@ -51,8 +62,27 @@ export class TableComponent {
         });
     }
 
+    ngOnChanges(changes: SimpleChanges) {
+        if (this.indexCount >= 2) {
+            this.secondaryLineLeft = (10 + 6 * this.selectedIndexes[1]) + "rem";
+        } else {
+            this.secondaryLineLeft = "-6rem";
+        }
+    }
+
     headerClicked(event: MouseEvent, index: number) {
-        this.dataService.setPrimaryIndex(index);
+        let takenIndexIndex = this.selectedIndexes.findIndex(z => z == index);
+        if (takenIndexIndex == 0) {//clicked on primary index
+            return;
+        }
+        if (takenIndexIndex == -1) {//clicked where there is no selected index
+            this.selectedIndexes[0] = index;
+        } else {//swap primary with whatever selected index
+            let temp = this.selectedIndexes[0];
+            this.selectedIndexes[0] = index;
+            this.selectedIndexes[takenIndexIndex] = temp;
+        }
+        this.dataService.setSelectedIndexes(this.selectedIndexes);
     }
     verticallyScrolled(e: Event) {
         var header = <HTMLDivElement>this.componentContainer.nativeElement;

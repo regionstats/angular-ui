@@ -8,16 +8,21 @@ $border-color: #ccc;
     margin-top: 0.2rem;
 }
 
-.primary-line{
+.line{
     position: absolute;
-    top: 0;
+    top: -0.2rem;
     height: 0.2rem;
     width: 6rem;
     left: -6rem;
     z-index: -1;
-    background-color: #0063ff;
-    box-shadow: 0 -0.2rem 0 #0063ff;
     transition: left 0.2s ease-out
+}
+.primary-line{
+    background-color: #0063ff;
+}
+.secondary-line{
+    background-color: #ff3333;
+    z-index: -2;
 }
 
 .table-header-static-container{

@@ -19,3 +19,7 @@ body {
 .trans{
     transition: fill 0.3s;
 }
+.circle-trans{
+    transition: cx 2s;
+    transition: cy 2s;
+}

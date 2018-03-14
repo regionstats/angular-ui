@@ -14,6 +14,7 @@ import { Stat } from './models/stat';
 export class AppComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
     @ViewChild('colorKey') colorKey: ElementRef;
+    
     private svg: SVGElement;
     private textArea: string;
     private svgRegions: { [name: string]: SVGElement } = {};

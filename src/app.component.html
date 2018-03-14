@@ -16,7 +16,7 @@
             default
         </div>
     </div>
-    <table-component *ngIf="currentView != 'converter'"></table-component>
+    <table-component *ngIf="currentView != 'converter'" [indexCount]="currentView == 'scatterplot' ? 2 : 1"></table-component>
 </div>
 <ng-template>
     <textarea [(ngModel)]="textArea"></textarea>
