@@ -23,3 +23,10 @@ body {
     transition: cx 2s;
     transition: cy 2s;
 }
+
+a {
+    cursor: pointer;
+    &.active{
+        cursor: default;
+    }
+}

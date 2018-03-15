@@ -93,6 +93,7 @@ export class ScatterplotComponent {
                 }
             }
         }
+        let oldZRatio = this.zRatio;
         let maxZX = Math.max(...Object.keys(newDotMap).map(id => Math.abs(newDotMap[id].x)));
         let maxZY = Math.max(...Object.keys(newDotMap).map(id => Math.abs(newDotMap[id].y)));
         this.maxZ = Math.max(maxZX, maxZY);
@@ -103,8 +104,8 @@ export class ScatterplotComponent {
                 this.addCircle(newDotMap[id]);
             } else {
                 let task = new Task();
-                task.x = 5000 + this.zRatio * this.dotMap[id].x;
-                task.y = 5000 - this.zRatio * this.dotMap[id].y;
+                task.x = 5000 + oldZRatio * this.dotMap[id].x;
+                task.y = 5000 - oldZRatio * this.dotMap[id].y;
                 task.endX = 5000 + this.zRatio * newDotMap[id].x;
                 task.endY = 5000 - this.zRatio * newDotMap[id].y;
                 task.type = CoordinateType.circle
@@ -113,7 +114,7 @@ export class ScatterplotComponent {
             }
         }
         if (tasks.length) {
-            this.animateService.startTasks(tasks, 2000, 10);
+            this.animateService.startTasks(tasks, 500, 10);
         }
         this.updateLineGroup()
         this.dotMap = newDotMap;
