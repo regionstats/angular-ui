@@ -10,6 +10,7 @@ import { AsyncSubject } from 'rxjs';
 import { ViewBox } from '../models/view-box';
 import { Data } from '../models/data';
 import { Dot } from './dot';
+import { AnimateService, Task, CoordinateType } from '../services/animate.service';
 
 @Component({
     selector: 'scatterplot-component',
@@ -19,7 +20,6 @@ export class ScatterplotComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
 
     public heightStr: string = "80vh";
-    public dotArray: Dot[] = [];
     public dotMap: { [region: string]: Dot } = {};
 
     private statX: Stat;
@@ -33,7 +33,7 @@ export class ScatterplotComponent {
     private zRatio: number;
     private marginRatio: number = 0.95;
 
-    constructor(private dateService: DataService) {
+    constructor(private dateService: DataService, private animateService: AnimateService) {
     }
 
     ngOnInit() {
@@ -50,27 +50,13 @@ export class ScatterplotComponent {
         this.svgElement.setAttribute("height", "100%");
         this.svgElement.setAttribute("viewBox", "0 0 10000 10000");
         this.svgContainer.nativeElement.appendChild(this.svgElement);
-
-        this.dateService.getStats().subscribe(stats => {
-            this.statX = stats[0];
-            this.statY = stats[1];
-            if (this.statX && this.statY) {
-                this.updateDotCollections();
-                this.updateDotGroup();
-                this.updateLineGroup();
-            }
-            setTimeout(() => {
-                this.dotArray.forEach(dot => {
-                    let el = document.getElementById("rs-" + dot.region);
-                    console.log(el);
-                    el.setAttribute("cx", "5000");
-                    el.setAttribute("cy", "5000");
-                });
-            }, 1000)
+        this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
+            let stats = arr[0];
+            let indexes = arr[1];
+            this.statX = stats[indexes[0]];
+            this.statY = stats[indexes[1]];
+            this.statsChanged();
         });
-    }
-
-    private load() {
         this.setHeight();
     }
 
@@ -97,54 +83,74 @@ export class ScatterplotComponent {
             this.heightStr = "80vh";
         }
     }
+    private statsChanged() {
+        let newDotMap = this.getDotMap();
+        for (let id in this.dotMap) {
+            if (!newDotMap[id]) {
+                let el = document.getElementById("rs-" + id);
+                if (el) {
+                    el.parentNode.removeChild(el);
+                }
+            }
+        }
+        let maxZX = Math.max(...Object.keys(newDotMap).map(id => Math.abs(newDotMap[id].x)));
+        let maxZY = Math.max(...Object.keys(newDotMap).map(id => Math.abs(newDotMap[id].y)));
+        this.maxZ = Math.max(maxZX, maxZY);
+        this.zRatio = 5000 * this.marginRatio / this.maxZ;
+        let tasks: Task[] = [];
+        for (let id in newDotMap) {
+            if (!this.dotMap[id]) {
+                this.addCircle(newDotMap[id]);
+            } else {
+                let task = new Task();
+                task.x = 5000 + this.zRatio * this.dotMap[id].x;
+                task.y = 5000 - this.zRatio * this.dotMap[id].y;
+                task.endX = 5000 + this.zRatio * newDotMap[id].x;
+                task.endY = 5000 - this.zRatio * newDotMap[id].y;
+                task.type = CoordinateType.circle
+                task.id = id;
+                tasks.push(task)
+            }
+        }
+        if (tasks.length) {
+            this.animateService.startTasks(tasks, 2000, 10);
+        }
+        this.updateLineGroup()
+        this.dotMap = newDotMap;
+    }
 
-    private updateDotCollections() {
-        this.dotArray = [];
-        this.dotMap = {};
+    private getDotMap() {
+        let dotMap = {};
         this.statX.data.forEach(data => {
-            let dot = this.dotMap[data.region];
+            let dot = dotMap[data.region];
             if (!dot) {
                 dot = new Dot(data.region);
-                this.dotMap[data.region] = dot;
-                this.dotArray.push(dot);
+                dotMap[data.region] = dot;
             }
             dot.x = (data.value - this.statX.calc.mean) / this.statX.calc.sd;
             dot.xValue = data.value
         });
         this.statY.data.forEach(data => {
-            let dot = this.dotMap[data.region];
+            let dot = dotMap[data.region];
             if (!dot) {
                 dot = new Dot(data.region);
-                this.dotMap[data.region] = dot;
-                this.dotArray.push(dot);
+                dotMap[data.region] = dot;
             }
             dot.y = (data.value - this.statY.calc.mean) / this.statY.calc.sd;
             dot.yValue = data.value
         });
-        this.dotArray = this.dotArray.filter(dot => {
-            if (dot.x == null || dot.y == null) {
-                delete this.dotArray[dot.region];
-                return false;
-            }
-            return true;
-        });
-        let maxZX = Math.max(...this.dotArray.map(z => Math.abs(z.x)));
-        let maxZY = Math.max(...this.dotArray.map(z => Math.abs(z.y)));
-        this.maxZ = Math.max(maxZX, maxZY);
-        this.zRatio = 5000 * this.marginRatio / this.maxZ;
+        console.log()
+        return dotMap;
     }
 
-    private updateDotGroup() {
-        this.dotArray.forEach(dot => {
-            let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("fill", "#0063ff");
-            circle.setAttribute("r", "100");
-            circle.setAttribute("cx", (5000 + this.zRatio * dot.x).toString());
-            circle.setAttribute("cy", (5000 - this.zRatio * dot.y).toString())
-            circle.setAttribute("id", "rs-" + dot.region);
-            circle.setAttribute("class", "circle-trans");
-            this.dotGroup.appendChild(circle);
-        })
+    private addCircle(dot: Dot) {
+        let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("fill", "#0063ff");
+        circle.setAttribute("r", "100");
+        circle.setAttribute("cx", (5000 + this.zRatio * dot.x).toString());
+        circle.setAttribute("cy", (5000 - this.zRatio * dot.y).toString())
+        circle.setAttribute("id", "rs-" + dot.region);
+        this.dotGroup.appendChild(circle);
     }
 
     private updateLineGroup() {

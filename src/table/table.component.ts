@@ -32,7 +32,7 @@ export class TableComponent {
     private horizontalScrollFunctionRef: (e) => {};
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
-    private selectedIndexes: number[];
+    private selectedIndexes: number[] = [0, 1];
 
     constructor(private dataService: DataService) {
     }
