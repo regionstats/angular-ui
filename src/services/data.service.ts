@@ -32,23 +32,26 @@ export class DataService {
         }
     }
 
-    public loadPage(): void {
-        let urlParseResult = this.parserService.tryParseUrlParam(window.location.href);
-        if (typeof urlParseResult == "string") {
-            console.log("failed to get urlParam", urlParseResult)
-        } else {
-            this.parserService.tryParsePage(urlParseResult).subscribe(page => {
-                if (typeof page == "string") {
-                    console.log("failed to get page", page)
-                    this.statsSubject.next(null);
-                } else {
-                    this.page = page;
-                    page.stats.forEach(z => {
-                        z.calc = new Calculation(z.data);
-                    })
-                    this.statsSubject.next(page.stats);
-                }
-            })
-        }
+    public loadPage(): Observable<string | Page> {
+        return new Observable((observer) => {
+            let urlParseResult = this.parserService.tryParseUrlParam(window.location.href);
+            if (typeof urlParseResult == "string") {
+                observer.next(urlParseResult);
+            } else {
+                this.parserService.tryParsePage(urlParseResult).subscribe(page => {
+                    if (typeof page == "string") {
+                        this.statsSubject.next(null);
+                        observer.next(page);
+                    } else {
+                        this.page = page;
+                        page.stats.forEach(z => {
+                            z.calc = new Calculation(z.data);
+                        })
+                        observer.next(page);
+                        this.statsSubject.next(page.stats);
+                    }
+                })
+            }
+        });
     }
 }

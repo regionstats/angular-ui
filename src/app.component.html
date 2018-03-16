@@ -4,19 +4,22 @@
         <button class="btn btn-primary" (click)="currentView = 'scatterplot'">Scatterplot</button>
         <button class="btn btn-primary" (click)="currentView = 'converter'">Conversion Utilities</button>
     </div>
-    <div [ngSwitch]="currentView">
+    <div [ngSwitch]="currentView" *ngIf="!noData || currentView == 'converter'">
         <map-component *ngSwitchCase="'map'"></map-component>
-        <div *ngSwitchCase="'scatterplot'">
-            <scatterplot-component></scatterplot-component>
-        </div>
-        <div *ngSwitchCase="'converter'">
-            <converter-component></converter-component>
-        </div>
-        <div *ngSwitchDefault>
-            default
+        <scatterplot-component *ngSwitchCase="'scatterplot'"></scatterplot-component>
+        <converter-component *ngSwitchCase="'converter'"></converter-component>
+        <div *ngSwitchDefault class="text-center">
+            loading
         </div>
     </div>
     <table-component *ngIf="currentView != 'converter'" [indexCount]="currentView == 'scatterplot' ? 2 : 1"></table-component>
+    <div *ngIf="noData && currentView != 'converter'">
+        <p class="text-center mt-4">
+            No data found in the URL.
+
+            Please use the Conversion Utilities to generate a URL
+        </p>
+    </div>
 </div>
 <ng-template>
     <textarea [(ngModel)]="textArea"></textarea>
