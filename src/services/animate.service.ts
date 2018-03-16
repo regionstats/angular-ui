@@ -21,9 +21,7 @@ export class AnimateService {
                         let index = taskMapContainer.map[task.id].attributes.findIndex(z => z.name == attr.name);
                         if (index >= 0) {
                             attr.val = taskMapContainer.map[task.id].attributes[index].val;
-                            console.log("before", taskMapContainer.map[task.id]);
                             taskMapContainer.map[task.id].attributes.splice(index, 1);
-                            console.log("after", taskMapContainer.map[task.id]);
                         }
                     });
                 }

@@ -180,6 +180,8 @@ export class ParserService {
         let parseSourceResult = this.tryParseSource(source)
         if (parseSourceResult instanceof Source) {
             stat.source = parseSourceResult;
+        } else {
+            stat.source = new Source();
         }
         if (observableArray.length) {
             return Observable.forkJoin(observableArray).map(z => stat);

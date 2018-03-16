@@ -19,7 +19,7 @@ export class AppComponent {
     private textArea: string;
     private svgRegions: { [name: string]: SVGElement } = {};
 
-    public currentView: string = "map";
+    public currentView: string = "scatterplot";
     public currentStatIndex: number;
     public stats: Stat[] = [];
 

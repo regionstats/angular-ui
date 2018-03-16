@@ -1,4 +1,18 @@
-<div>
-    <h3 class="text-center">{{statY.title}} vs {{statX.title}}</h3>
-    <div #svgContainer [style.height]="heightStr"></div>
+<div class="col">
+    <div class="row justify-content-center">
+        <div class="row" style="position: relative; margin-bottom: 40px;">
+            <div class="col-auto" style="width: 40px">
+            </div>
+            <div class="col">
+                <div #svgContainer [style.height]="widthStr" [style.width]="widthStr">
+                </div>
+                <div class="text-center pt-1" [style.width]="widthStr" style="position: absolute; left: 15px; right: 0; top: 100%;">
+                    <h5>{{statX.title}}</h5>
+                </div>
+            </div>
+            <div class="text-center pt-2" [style.width]="widthStr" style="transform: rotate(270deg); transform-origin: top left; position: absolute; left: 15px; right: 0; top: 100%;">
+                <h5>{{statY.title}}</h5>
+            </div>
+        </div>
+    </div>
 </div>

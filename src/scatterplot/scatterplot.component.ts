@@ -20,7 +20,7 @@ import { Attribute } from '@angular/compiler';
 export class ScatterplotComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
 
-    public heightStr: string = "80vh";
+    public widthStr: string;
     public dotMap: { [region: string]: Dot } = {};
 
     private statX: Stat;
@@ -31,13 +31,16 @@ export class ScatterplotComponent {
     private axisGroup: SVGGElement;
     private dotGroup: SVGGElement;
     private defs: SVGDefsElement
-    private maxZ: number = 3;
+    private maxZ: number;
     private zRatio: number;
     private marginRatio: number;
 
+    private slope: number;
+    private intercept: number;
+
     constructor(private dateService: DataService, private animateService: AnimateService) {
         this.marginRatio = .95;
-        this.maxZ = 3;
+        this.maxZ = 4;
         this.zRatio = 5000 * this.marginRatio / this.maxZ;
     }
 
@@ -58,6 +61,7 @@ export class ScatterplotComponent {
         this.svgElement.appendChild(mainRect);
         this.svgElement.setAttribute("width", "100%");
         this.svgElement.setAttribute("height", "100%");
+        this.svgElement.setAttribute("overflow", "hidden");
         this.svgElement.setAttribute("viewBox", "0 0 10000 10000");
         this.svgContainer.nativeElement.appendChild(this.svgElement);
         this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
@@ -67,7 +71,7 @@ export class ScatterplotComponent {
             this.statY = stats[indexes[1]];
             this.statsChanged();
         });
-        this.setHeight();
+        this.setWidth();
     }
 
     private getMainRect(): SVGRectElement {
@@ -84,13 +88,13 @@ export class ScatterplotComponent {
     }
 
     // height/width
-    private setHeight() {
+    private setWidth() {
         let width = document.getElementById("scroll-container").clientWidth
         let height = document.documentElement.clientHeight;
-        if (width < height * .8) {
-            this.heightStr = width + "px";
+        if (width < (height * .8)) {
+            this.widthStr = (width - 50) + "px";
         } else {
-            this.heightStr = "80vh";
+            this.widthStr = (height * .8 - 50) + "px";
         }
     }
     private statsChanged() {
@@ -107,9 +111,10 @@ export class ScatterplotComponent {
         this.maxZ = Math.max(maxZX, maxZY);
         this.zRatio = 5000 * this.marginRatio / this.maxZ;
         let tasks: Task[] = [];
-        console.log(oldZRatio, this.zRatio)
-        //this.removeAllChildren("sd-markers-group");
-        //this.updateSdMarkers(tasks);
+
+        // ***************************************
+        // ***** SD Markers
+        // ***************************************
         for (var i = 1; i < Math.max(this.maxZ, oldMaxZ) / this.marginRatio; i++) {
             let el = document.getElementById("zx-minus-" + i);
             if (!el) {
@@ -155,11 +160,35 @@ export class ScatterplotComponent {
             task.attributes.push(new TaskAttribute("y2", 5000 + (i * oldZRatio), 5000 + (i * this.zRatio)));
             tasks.push(task);
         }
+        // ***************************************
+        // ***** Trend Line
+        // ***************************************
+        {
+            let oldSlope = this.slope;
+            let oldIntercept = this.intercept;
+            this.updateTrendLine(newDotMap);
+            let oldy1 = oldSlope != null ? 5000 + (oldSlope * 5000) - (oldIntercept * oldZRatio) : 5000;
+            let oldy2 = oldSlope != null ? 5000 - (oldSlope * 5000) - (oldIntercept * oldZRatio) : 5000;
+            let y1 = 5000 + (this.slope * 5000) - (this.intercept * this.zRatio);
+            let y2 = 5000 - (this.slope * 5000) - (this.intercept * this.zRatio);
+            let el = document.getElementById("trend-line");
+            if (!el) {
+                let line = this.getLine(0, y1, 10000, y2, "#333", 20);
+                line.setAttribute("id", "trend-line");
+                this.sdMarkersGroup.appendChild(line);
+            } 
+            let task = new Task("trend-line");
+            task.attributes.push(new TaskAttribute("y1", oldy1, y1));
+            task.attributes.push(new TaskAttribute("y2", oldy2, y2));
+            tasks.push(task);
+        }    
 
-
+        // ***************************************
+        // ***** Dots
+        // ***************************************
         for (let region in newDotMap) {
             if (!this.dotMap[region]) {
-                this.addCircle(newDotMap[region], 300 / this.maxZ);
+                this.addCircle(newDotMap[region], 500 / this.maxZ);
             } else {
                 let task = new Task("rs-" + region);
                 task.attributes.push(new TaskAttribute("cx",
@@ -168,21 +197,21 @@ export class ScatterplotComponent {
                 task.attributes.push(new TaskAttribute("cy",
                     5000 - oldZRatio * this.dotMap[region].y,
                     5000 - this.zRatio * newDotMap[region].y));
-                task.attributes.push(new TaskAttribute("r", 300 / oldMaxZ, 300 / this.maxZ));
+                task.attributes.push(new TaskAttribute("r", 500 / oldMaxZ, 500 / this.maxZ));
                 tasks.push(task)
             }
         }
-        
+
         if (tasks.length) {
             this.animateService.startTasks(tasks, 300, 10);
         }
         this.dotMap = newDotMap;
     }
     private getMarkerTask() {
-        
+
     }
 
-    private getDotMap() {
+    private getDotMap(): { [region: string]: Dot } {
         let dotMap = {};
         this.statX.data.forEach(data => {
             let dot = dotMap[data.region];
@@ -210,7 +239,8 @@ export class ScatterplotComponent {
         circle.setAttribute("fill", "#0063ff");
         circle.setAttribute("r", r.toString());
         circle.setAttribute("cx", (5000 + this.zRatio * dot.x).toString());
-        circle.setAttribute("cy", (5000 - this.zRatio * dot.y).toString())
+        circle.setAttribute("cy", (5000 - this.zRatio * dot.y).toString());
+        circle.setAttribute("fill-opacity", "0.6");
         circle.setAttribute("id", "rs-" + dot.region);
         this.dotGroup.appendChild(circle);
     }
@@ -245,5 +275,26 @@ export class ScatterplotComponent {
         line.setAttribute("stroke", color);
         line.setAttribute("stroke-width", width.toString());
         return line;
+    }
+
+    private updateTrendLine(dotMap: { [region: string]: Dot }) {
+        let x2sum = 0;
+        let xysum = 0;
+        let xsum = 0;
+        let ysum = 0;
+        let n = 0;
+        for (let key in dotMap) {
+            let x = dotMap[key].x;
+            let y = dotMap[key].y;
+            x2sum += x * x;
+            xysum += x * y;
+            xsum += x;
+            ysum += y;
+            n++;
+        }
+        let rise = (n * xysum) - (xsum * ysum);
+        let run = (n * x2sum) - (xsum * xsum);
+        this.slope = rise / run;
+        this.intercept = (ysum - (this.slope * xsum)) / n;
     }
 }
