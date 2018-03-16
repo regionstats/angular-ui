@@ -10,7 +10,8 @@ import { AsyncSubject } from 'rxjs';
 import { ViewBox } from '../models/view-box';
 import { Data } from '../models/data';
 import { Dot } from './dot';
-import { AnimateService, Task, CoordinateType } from '../services/animate.service';
+import { AnimateService, Task, TaskAttribute } from '../services/animate.service';
+import { Attribute } from '@angular/compiler';
 
 @Component({
     selector: 'scatterplot-component',
@@ -26,22 +27,31 @@ export class ScatterplotComponent {
     private statY: Stat;
 
     private svgElement: SVGSVGElement;
-    private lineGroup: SVGGElement;
+    private sdMarkersGroup: SVGGElement;
+    private axisGroup: SVGGElement;
     private dotGroup: SVGGElement;
     private defs: SVGDefsElement
-    private maxZ: number;
+    private maxZ: number = 3;
     private zRatio: number;
-    private marginRatio: number = 0.95;
+    private marginRatio: number;
 
     constructor(private dateService: DataService, private animateService: AnimateService) {
+        this.marginRatio = .95;
+        this.maxZ = 3;
+        this.zRatio = 5000 * this.marginRatio / this.maxZ;
     }
 
     ngOnInit() {
         this.svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
         this.svgElement.appendChild(this.defs);
-        this.lineGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        this.svgElement.appendChild(this.lineGroup);
+        this.sdMarkersGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.svgElement.appendChild(this.sdMarkersGroup);
+        this.sdMarkersGroup.setAttribute("id", "sd-markers-group");
+        this.axisGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.axisGroup.appendChild(this.getHorizontalLine(5000, "red", 20));
+        this.axisGroup.appendChild(this.getVerticalLine(5000, "red", 20));
+        this.svgElement.appendChild(this.axisGroup);
         this.dotGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.svgElement.appendChild(this.dotGroup);
         let mainRect = this.getMainRect();
@@ -87,37 +97,89 @@ export class ScatterplotComponent {
         let newDotMap = this.getDotMap();
         for (let id in this.dotMap) {
             if (!newDotMap[id]) {
-                let el = document.getElementById("rs-" + id);
-                if (el) {
-                    el.parentNode.removeChild(el);
-                }
+                this.removeElement("rs-" + id);
             }
         }
         let oldZRatio = this.zRatio;
+        let oldMaxZ = this.maxZ;
         let maxZX = Math.max(...Object.keys(newDotMap).map(id => Math.abs(newDotMap[id].x)));
         let maxZY = Math.max(...Object.keys(newDotMap).map(id => Math.abs(newDotMap[id].y)));
         this.maxZ = Math.max(maxZX, maxZY);
         this.zRatio = 5000 * this.marginRatio / this.maxZ;
         let tasks: Task[] = [];
-        for (let id in newDotMap) {
-            if (!this.dotMap[id]) {
-                this.addCircle(newDotMap[id]);
+        console.log(oldZRatio, this.zRatio)
+        //this.removeAllChildren("sd-markers-group");
+        //this.updateSdMarkers(tasks);
+        for (var i = 1; i < Math.max(this.maxZ, oldMaxZ) / this.marginRatio; i++) {
+            let el = document.getElementById("zx-minus-" + i);
+            if (!el) {
+                let line = this.getVerticalLine(5000 - (i * oldZRatio), "gray", 10);
+                line.setAttribute("id", "zx-minus-" + i);
+                this.sdMarkersGroup.appendChild(line);
+            }
+            let task = new Task("zx-minus-" + i);
+            task.attributes.push(new TaskAttribute("x1", 5000 - (i * oldZRatio), 5000 - (i * this.zRatio)));
+            task.attributes.push(new TaskAttribute("x2", 5000 - (i * oldZRatio), 5000 - (i * this.zRatio)));
+            tasks.push(task);
+
+            el = document.getElementById("zx-plus-" + i);
+            if (!el) {
+                let line = this.getVerticalLine(5000 + (i * oldZRatio), "gray", 10);
+                line.setAttribute("id", "zx-plus-" + i);
+                this.sdMarkersGroup.appendChild(line);
+            }
+            task = new Task("zx-plus-" + i);
+            task.attributes.push(new TaskAttribute("x1", 5000 + (i * oldZRatio), 5000 + (i * this.zRatio)));
+            task.attributes.push(new TaskAttribute("x2", 5000 + (i * oldZRatio), 5000 + (i * this.zRatio)));
+            tasks.push(task);
+
+            el = document.getElementById("zy-plus-" + i);
+            if (!el) {
+                let line = this.getHorizontalLine(5000 + (i * oldZRatio), "gray", 10);
+                line.setAttribute("id", "zy-plus-" + i);
+                this.sdMarkersGroup.appendChild(line);
+            }
+            task = new Task("zy-plus-" + i);
+            task.attributes.push(new TaskAttribute("y1", 5000 - (i * oldZRatio), 5000 - (i * this.zRatio)));
+            task.attributes.push(new TaskAttribute("y2", 5000 - (i * oldZRatio), 5000 - (i * this.zRatio)));
+            tasks.push(task);
+
+            el = document.getElementById("zy-minus-" + i);
+            if (!el) {
+                let line = this.getHorizontalLine(5000 + (i * oldZRatio), "gray", 10);
+                line.setAttribute("id", "zy-minus-" + i);
+                this.sdMarkersGroup.appendChild(line);
+            }
+            task = new Task("zy-minus-" + i);
+            task.attributes.push(new TaskAttribute("y1", 5000 + (i * oldZRatio), 5000 + (i * this.zRatio)));
+            task.attributes.push(new TaskAttribute("y2", 5000 + (i * oldZRatio), 5000 + (i * this.zRatio)));
+            tasks.push(task);
+        }
+
+
+        for (let region in newDotMap) {
+            if (!this.dotMap[region]) {
+                this.addCircle(newDotMap[region], 300 / this.maxZ);
             } else {
-                let task = new Task();
-                task.x = 5000 + oldZRatio * this.dotMap[id].x;
-                task.y = 5000 - oldZRatio * this.dotMap[id].y;
-                task.endX = 5000 + this.zRatio * newDotMap[id].x;
-                task.endY = 5000 - this.zRatio * newDotMap[id].y;
-                task.type = CoordinateType.circle
-                task.id = id;
+                let task = new Task("rs-" + region);
+                task.attributes.push(new TaskAttribute("cx",
+                    5000 + oldZRatio * this.dotMap[region].x,
+                    5000 + this.zRatio * newDotMap[region].x));
+                task.attributes.push(new TaskAttribute("cy",
+                    5000 - oldZRatio * this.dotMap[region].y,
+                    5000 - this.zRatio * newDotMap[region].y));
+                task.attributes.push(new TaskAttribute("r", 300 / oldMaxZ, 300 / this.maxZ));
                 tasks.push(task)
             }
         }
+        
         if (tasks.length) {
-            this.animateService.startTasks(tasks, 500, 10);
+            this.animateService.startTasks(tasks, 300, 10);
         }
-        this.updateLineGroup()
         this.dotMap = newDotMap;
+    }
+    private getMarkerTask() {
+        
     }
 
     private getDotMap() {
@@ -140,39 +202,41 @@ export class ScatterplotComponent {
             dot.y = (data.value - this.statY.calc.mean) / this.statY.calc.sd;
             dot.yValue = data.value
         });
-        console.log()
         return dotMap;
     }
 
-    private addCircle(dot: Dot) {
+    private addCircle(dot: Dot, r: number) {
         let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("fill", "#0063ff");
-        circle.setAttribute("r", "100");
+        circle.setAttribute("r", r.toString());
         circle.setAttribute("cx", (5000 + this.zRatio * dot.x).toString());
         circle.setAttribute("cy", (5000 - this.zRatio * dot.y).toString())
         circle.setAttribute("id", "rs-" + dot.region);
         this.dotGroup.appendChild(circle);
     }
 
-    private updateLineGroup() {
-        let width = 50;
-        let gray = "#ccc";
-        for (var i = 1; i < this.maxZ / this.marginRatio; i++) {
-            this.addHorizontalLine(5000 - (i * this.zRatio), gray, 10);
-            this.addHorizontalLine(5000 + (i * this.zRatio), gray, 10);
-            this.addVerticalLine(5000 - (i * this.zRatio), gray, 10);
-            this.addVerticalLine(5000 + (i * this.zRatio), gray, 10);
+    private removeElement(id: string) {
+        let el = document.getElementById(id);
+        if (el) {
+            el.parentNode.removeChild(el);
         }
-        this.addHorizontalLine(5000, "red", 20);
-        this.addVerticalLine(5000, "red", 20);
     }
-    private addVerticalLine(x: number, color: string, width: number) {
-        this.addLine(x, 0, x, 10000, color, width);
+    private removeAllChildren(id: string) {
+        let el = document.getElementById(id);
+        if (el) {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        }
     }
-    private addHorizontalLine(y: number, color: string, width: number) {
-        this.addLine(0, y, 10000, y, color, width);
+
+    private getVerticalLine(x: number, color: string, width: number): SVGLineElement {
+        return this.getLine(x, 0, x, 10000, color, width);
     }
-    private addLine(x1: number, y1: number, x2: number, y2: number, color: string, width: number) {
+    private getHorizontalLine(y: number, color: string, width: number): SVGLineElement {
+        return this.getLine(0, y, 10000, y, color, width);
+    }
+    private getLine(x1: number, y1: number, x2: number, y2: number, color: string, width: number): SVGLineElement {
         let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", x1.toString());
         line.setAttribute("y1", y1.toString());
@@ -180,6 +244,6 @@ export class ScatterplotComponent {
         line.setAttribute("y2", y2.toString());
         line.setAttribute("stroke", color);
         line.setAttribute("stroke-width", width.toString());
-        this.lineGroup.appendChild(line);
+        return line;
     }
 }
