@@ -6,12 +6,20 @@
             <div class="col">
                 <div #svgContainer [style.height.px]="width" [style.width.px]="width">
                 </div>
-                <div class="text-center pt-1" [style.width.px]="width" style="position: absolute; left: 15px; right: 0; top: 100%;">
-                    <h5>{{statX.title}}</h5>
+                <div class="pt-1 pl-2" *ngIf="currentDot" style="position: absolute; top: 0; left: 15px; right: 50%; pointer-events: none;">
+                    <h4 class="mb-0">{{currentDot.region}}</h4>
+                    <p class="mb-0"><strong>X = {{metricFormat(currentDot.xValue)}}</strong> </p>
+                    <p><strong>Y = {{metricFormat(currentDot.yValue)}}</strong></p>
+                </div>
+                <div class="pt-1 pr-2 text-right" style="position: absolute; top: 0; right: 15px; left: 50%; pointer-events: none;">
+                    <p><strong>R =  {{slope.toPrecision(3)}}</strong></p>
+                </div>
+                <div class="text-center pt-1" style="position: absolute; left: 15px; right: 15px; top: 100%;">
+                    <h5 style="white-space: nowrap;">{{statX.title}}</h5>
                 </div>
             </div>
-            <div class="text-center pt-2" [style.width.px]="width" style="transform: rotate(270deg); transform-origin: top left; position: absolute; left: 15px; right: 0; top: 100%;">
-                <h5>{{statY.title}}</h5>
+            <div class="text-center pt-2" style="transform: rotate(270deg); transform-origin: top left; position: absolute; left: 15px; right: 40px; top: 100%;">
+                <h5 style="white-space: nowrap;">{{statY.title}}</h5>
             </div>
         </div>
     </div>

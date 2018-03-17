@@ -38,6 +38,8 @@ export class ScatterplotComponent {
     private slope: number;
     private intercept: number;
 
+    private currentDot: Dot;
+    private currentClickDot: Dot;
     private currentHoverDot: Dot;
 
     constructor(private dateService: DataService, private animateService: AnimateService) {
@@ -54,9 +56,7 @@ export class ScatterplotComponent {
         this.sdMarkersGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.svgElement.appendChild(this.sdMarkersGroup);
         this.sdMarkersGroup.setAttribute("id", "sd-markers-group");
-        this.axisGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        this.axisGroup.appendChild(this.getHorizontalLine(5000, "red", 20));
-        this.axisGroup.appendChild(this.getVerticalLine(5000, "red", 20));
+        this.axisGroup = this.getAxisGroup();
         this.svgElement.appendChild(this.axisGroup);
         this.dotGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.svgElement.appendChild(this.dotGroup);
@@ -75,21 +75,9 @@ export class ScatterplotComponent {
             this.statsChanged();
         });
         this.setWidth();
+        this.svgContainer.nativeElement.addEventListener("click", this.mouseClick.bind(this))
         this.svgContainer.nativeElement.addEventListener("mousemove", this.mouseMove.bind(this))
         this.svgContainer.nativeElement.addEventListener("mouseleave", this.dotHovered.bind(this, null))
-    }
-
-    private getMainRect(): SVGRectElement {
-        let stroke = 20;
-        let mainRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        mainRect.setAttribute("x", (stroke / 2).toString());
-        mainRect.setAttribute("y", (stroke / 2).toString());
-        mainRect.setAttribute("width", (10000 - stroke).toString());
-        mainRect.setAttribute("height", (10000 - stroke).toString());
-        mainRect.setAttribute("stroke", "#aaa");
-        mainRect.setAttribute("fill", "none");
-        mainRect.setAttribute("stroke-width", stroke.toString());
-        return mainRect;
     }
 
     private setWidth() {
@@ -123,9 +111,10 @@ export class ScatterplotComponent {
         // ***** SD Markers
         // ***************************************
         for (var i = 1; i < Math.max(this.maxZ, oldMaxZ) / this.marginRatio; i++) {
+            let sdColor = "#aaa";
             let el = document.getElementById("zx-minus-" + i);
             if (!el) {
-                let line = this.getVerticalLine(5000 - (i * oldZViewboxRatio), "gray", 10);
+                let line = this.getVerticalLine(5000 - (i * oldZViewboxRatio), sdColor, 10);
                 line.setAttribute("id", "zx-minus-" + i);
                 this.sdMarkersGroup.appendChild(line);
             }
@@ -136,7 +125,7 @@ export class ScatterplotComponent {
 
             el = document.getElementById("zx-plus-" + i);
             if (!el) {
-                let line = this.getVerticalLine(5000 + (i * oldZViewboxRatio), "gray", 10);
+                let line = this.getVerticalLine(5000 + (i * oldZViewboxRatio), sdColor, 10);
                 line.setAttribute("id", "zx-plus-" + i);
                 this.sdMarkersGroup.appendChild(line);
             }
@@ -147,7 +136,7 @@ export class ScatterplotComponent {
 
             el = document.getElementById("zy-plus-" + i);
             if (!el) {
-                let line = this.getHorizontalLine(5000 + (i * oldZViewboxRatio), "gray", 10);
+                let line = this.getHorizontalLine(5000 + (i * oldZViewboxRatio), sdColor, 10);
                 line.setAttribute("id", "zy-plus-" + i);
                 this.sdMarkersGroup.appendChild(line);
             }
@@ -158,7 +147,7 @@ export class ScatterplotComponent {
 
             el = document.getElementById("zy-minus-" + i);
             if (!el) {
-                let line = this.getHorizontalLine(5000 + (i * oldZViewboxRatio), "gray", 10);
+                let line = this.getHorizontalLine(5000 + (i * oldZViewboxRatio), sdColor, 10);
                 line.setAttribute("id", "zy-minus-" + i);
                 this.sdMarkersGroup.appendChild(line);
             }
@@ -212,14 +201,37 @@ export class ScatterplotComponent {
         if (tasks.length) {
             this.animateService.startTasks(tasks, 300, 10);
         }
+        this.updateAvgText();
+        this.updateCurrentDot();
     }
 
     private mouseMove(event: MouseEvent) {
+        this.dotHovered(this.getNearestDot(event.offsetX, event.offsetY, 0.2));
+    }
+    private mouseClick(event: MouseEvent) {
+        let dot = this.getNearestDot(event.offsetX, event.offsetY, .5);
+        if (this.currentClickDot && this.currentClickDot != dot) {
+            let el = document.getElementById("rs-" + this.currentClickDot.region);
+            if (el) {
+                el.setAttribute("fill", "#0063ff");
+            }
+        }
+        if (dot && this.currentClickDot != dot) {
+            let el = document.getElementById("rs-" + dot.region);
+            let r = el.getAttribute("r");
+            this.removeElement("rs-" + dot.region);
+            this.addCircle(dot,<any>r);
+            el = document.getElementById("rs-" + dot.region);
+            el.setAttribute("fill", "#00a221");
+        }
+        this.currentClickDot = dot;
+        this.updateCurrentDot();
+    }
+    private getNearestDot(offsetX: number, offsetY: number, minDist: number): Dot {
         let halfWidth = (this.width / 2);
         let ratio = this.maxZ / (this.marginRatio * halfWidth);
-        let mouseX = (event.offsetX - halfWidth) * ratio;
-        let mouseY = (halfWidth - event.offsetY) * ratio;
-        let minDist = 0.2;
+        let mouseX = (offsetX - halfWidth) * ratio;
+        let mouseY = (halfWidth - offsetY) * ratio;
         let minDot = null;
         for (let region in this.dotMap) {
             let x = this.dotMap[region].x - mouseX;
@@ -230,7 +242,17 @@ export class ScatterplotComponent {
                 minDot = this.dotMap[region];
             }
         }
-        this.dotHovered(minDot);
+        return minDot;
+    }
+    private updateCurrentDot() {
+        if (this.currentHoverDot) {
+            this.currentHoverDot = this.dotMap[this.currentHoverDot.region];
+        }
+        if (this.currentClickDot) {
+            this.currentClickDot = this.dotMap[this.currentClickDot.region];
+        }
+        this.currentDot = this.currentHoverDot ? this.currentHoverDot : this.currentClickDot;
+        //this.currentDot = this.currentClickDot ? this.currentClickDot : this.currentHoverDot;
     }
     private dotHovered(dot: Dot) {
         let tasks: Task[] = []
@@ -247,6 +269,7 @@ export class ScatterplotComponent {
             tasks.push(task);
         }
         this.currentHoverDot = dot;
+        this.updateCurrentDot();
         if (tasks.length) {
             this.animateService.startTasks(tasks, 150);
         }
@@ -330,6 +353,41 @@ export class ScatterplotComponent {
         return line;
     }
 
+    
+    private getMainRect(): SVGRectElement {
+        let stroke = 20;
+        let mainRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        mainRect.setAttribute("x", (stroke / 2).toString());
+        mainRect.setAttribute("y", (stroke / 2).toString());
+        mainRect.setAttribute("width", (10000 - stroke).toString());
+        mainRect.setAttribute("height", (10000 - stroke).toString());
+        mainRect.setAttribute("stroke", "#aaa");
+        mainRect.setAttribute("fill", "none");
+        mainRect.setAttribute("stroke-width", stroke.toString());
+        return mainRect;
+    }
+
+    getAxisGroup(): SVGGElement {
+        let g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.appendChild(this.getHorizontalLine(5000, "red", 20));
+        g.appendChild(this.getVerticalLine(5000, "red", 20));
+        let xLabelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        xLabelText.setAttribute("x", "4490");
+        xLabelText.setAttribute("y", "9900");
+        xLabelText.setAttribute("font-size", "300")
+        xLabelText.setAttribute("fill", "#555")
+        xLabelText.innerHTML = "avg";
+        g.appendChild(xLabelText);
+        let yLabelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        yLabelText.setAttribute("x", "50");
+        yLabelText.setAttribute("y", "4900");
+        yLabelText.setAttribute("font-size", "300")
+        yLabelText.setAttribute("fill", "#555")
+        yLabelText.innerHTML = "avg";
+        g.appendChild(yLabelText);
+        return g;
+    }
+
     private updateTrendLine(dotMap: { [region: string]: Dot }) {
         let x2sum = 0;
         let xysum = 0;
@@ -349,5 +407,40 @@ export class ScatterplotComponent {
         let run = (n * x2sum) - (xsum * xsum);
         this.slope = rise / run;
         this.intercept = (ysum - (this.slope * xsum)) / n;
+    }
+    
+
+    private updateAvgText() {
+        let xAvgText: any = document.getElementById("x-avg-text");
+        if (!xAvgText){
+            xAvgText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            xAvgText.setAttribute("x", "50");
+            xAvgText.setAttribute("y", "5300");
+            xAvgText.setAttribute("font-size", "300")
+            xAvgText.setAttribute("id", "x-avg-text")
+            xAvgText.setAttribute("fill", "#555")
+        }
+        xAvgText.innerHTML = this.metricFormat(this.statY.calc.mean);
+        this.axisGroup.appendChild(xAvgText);
+        let yAvgText: any = document.getElementById("y-avg-text");
+        if (!yAvgText){
+            yAvgText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            yAvgText.setAttribute("x", "5050");
+            yAvgText.setAttribute("y", "9900");
+            yAvgText.setAttribute("font-size", "300")
+            yAvgText.setAttribute("id", "y-avg-text")
+            yAvgText.setAttribute("fill", "#555")
+        }
+        yAvgText.innerHTML = this.metricFormat(this.statX.calc.mean);
+        this.axisGroup.appendChild(yAvgText);
+    }
+    public metricFormat(num: number): string {
+        let letters = ["", "k", "M", "G", "T", "P"];
+        let i = 0;
+        while (num >= 1000) {
+            num /= 1000;
+            i++;
+        }
+        return parseFloat(num.toPrecision(3)) + letters[i];
     }
 }
