@@ -14,6 +14,13 @@ export class AnimateService {
         let count = 0;
         let container = new TaskMapContainer();
         container.map = {};
+        /*
+        When the new tasks animate an attribute already getting animated, there's 2 things I could do:
+        1. I could set the new TA's starting position to the old TA's current position, and delete the old TA
+        2. I could set the old TA's ending position to the new TA's ending position, and delete the new TA
+        The options differ in whether the TA has the endTime of the old task, or the new task.
+        I went with option 1, since option 2 might cause animations much faster than I want
+        */
         tasks.forEach(task => {
             this.taskMapContainers.forEach(taskMapContainer => {
                 if (taskMapContainer.map[task.id]) {
@@ -57,6 +64,7 @@ export class AnimateService {
         }, intervalTime);
     }
 }
+
 class TaskMapContainer{
     prevTime: number;
     endTime: number;

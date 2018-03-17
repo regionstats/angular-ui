@@ -4,13 +4,13 @@
             <div class="col-auto" style="width: 40px">
             </div>
             <div class="col">
-                <div #svgContainer [style.height]="widthStr" [style.width]="widthStr">
+                <div #svgContainer [style.height.px]="width" [style.width.px]="width">
                 </div>
-                <div class="text-center pt-1" [style.width]="widthStr" style="position: absolute; left: 15px; right: 0; top: 100%;">
+                <div class="text-center pt-1" [style.width.px]="width" style="position: absolute; left: 15px; right: 0; top: 100%;">
                     <h5>{{statX.title}}</h5>
                 </div>
             </div>
-            <div class="text-center pt-2" [style.width]="widthStr" style="transform: rotate(270deg); transform-origin: top left; position: absolute; left: 15px; right: 0; top: 100%;">
+            <div class="text-center pt-2" [style.width.px]="width" style="transform: rotate(270deg); transform-origin: top left; position: absolute; left: 15px; right: 0; top: 100%;">
                 <h5>{{statY.title}}</h5>
             </div>
         </div>
