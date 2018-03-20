@@ -1,5 +1,5 @@
 
-$region-width: 160px;
+$region-width: 140px;
 $stat-width: 120px;
 $border-color: #ccc;
 .component-container{
@@ -27,16 +27,27 @@ $border-color: #ccc;
 
 .table-header-static-container{
     display: flex;
+    justify-content: center;
     background: white;
 }
+.table-header-static{
+    min-width: 1px;
+    display: flex;
+    position: relative;
+}
 .table-header-fixed-container{
+    background: white;
     z-index: 200;
-    position: fixed; top: 0; left: 0; right: 0;
+    position: fixed; top: 0; left: 0; right: 17px;
+    display: flex;
+    justify-content: center;
+}
+.table-header-fixed{
+    min-width: 1px;
     display: flex;
     background: white;
     box-shadow: 0 0.2rem 0.2rem gray;
 }
-
 .table-header-spacer{
     min-width: $region-width;
     border-top: 1px solid $border-color;
@@ -67,6 +78,7 @@ $border-color: #ccc;
 
 .table-body-container{
     display: flex;
+    justify-content: center;
 }
 .table-region-column{
     z-index: 50;
@@ -83,9 +95,10 @@ $border-color: #ccc;
     &:first-child{
         border-top: 1px solid $border-color;
     }
+    white-space: nowrap;
+    overflow: hidden;
 }
 .table-data{
-    flex: 1;
     min-width: 1px;
     overflow-x: auto;
 }
@@ -102,4 +115,6 @@ $border-color: #ccc;
     &:last-child{
         border-right: 1px solid $border-color;
     }
+    white-space: nowrap;
+    overflow: hidden;
 }

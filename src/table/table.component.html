@@ -1,11 +1,15 @@
 <div *ngIf="stats && stats.length" class="component-container" #componentContainer>
-    <div class="line primary-line" #primaryLine [style.left.px]="primaryLineLeft"></div>
-    <div class="line secondary-line" #secondaryLine [style.left.px]="secondaryLineLeft"></div>
     <div class="table-header-static-container">
-        <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
+        <div class="table-header-static">
+            <div class="line primary-line" #primaryLine [style.left.px]="primaryLineLeft"></div>
+            <div class="line secondary-line" #secondaryLine [style.left.px]="secondaryLineLeft"></div>
+            <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
+        </div>
     </div>
     <div class="table-header-fixed-container" [style.top]="fixedHeader ? '0' : '-1000px'">
-        <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
+        <div class="table-header-fixed">
+            <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
+        </div>
     </div>
     <div class="table-body-container">
         <div class="table-region-column" [class.shadow]="scrollLeft">

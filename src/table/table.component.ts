@@ -84,9 +84,9 @@ export class TableComponent {
     }
 
     private updateLines() {
-        this.primaryLineLeft = (160 + 120 * this.selectedIndexes[0]) - this.scrollLeft;
+        this.primaryLineLeft = (140 + 120 * this.selectedIndexes[0]) - this.scrollLeft;
         if (this.indexCount >= 2) {
-            this.secondaryLineLeft = (160 + 120 * this.selectedIndexes[1]) - this.scrollLeft;
+            this.secondaryLineLeft = (140 + 120 * this.selectedIndexes[1]) - this.scrollLeft;
         } else {
             this.secondaryLineLeft = -120;
         }
