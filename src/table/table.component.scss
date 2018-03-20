@@ -15,7 +15,8 @@ $border-color: #ccc;
     width: $stat-width;
     left: -$stat-width;
     z-index: -1;
-    transition: left 0.2s ease-out
+    transition: left 0.2s ease-out, opacity 0.2s ease-out;
+    
 }
 .primary-line{
     background-color: #0063ff;

@@ -26,8 +26,6 @@ export class TableComponent {
     public rowWidth: string;
     public scrollLeft: number = 0;
     public scrollbarWidth: number = 0;
-    public primaryLineLeft: number = -120;
-    public secondaryLineLeft: number = -120;
 
     private verticalScrollFunctionRef: (e) => {};
     private headerScrollFunctionRefs: Array<(e) => {}> = [null, null];
@@ -35,6 +33,7 @@ export class TableComponent {
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
     private selectedIndexes: number[] = [0, 1];
+    private updateLineTimeout: NodeJS.Timer;
 
     constructor(private dataService: DataService) {
     }
@@ -99,12 +98,28 @@ export class TableComponent {
         this.dataService.setSelectedIndexes(this.selectedIndexes);
     }
 
-    private updateLines() {
-        this.primaryLineLeft = (140 + 120 * this.selectedIndexes[0]) - this.scrollLeft;
+    private updateLines(showTransition = true) {
+        if (!this.primaryLine || !this.primaryLine.nativeElement) {
+            clearTimeout(this.updateLineTimeout);
+            this.updateLineTimeout = setTimeout(() => {
+                this.updateLines();
+            }, 50);
+            return;
+        }
+
+        let styleStr = `left: ${(140 + 120 * this.selectedIndexes[0]) - this.scrollLeft}px;`;
+        if (!showTransition) {
+            styleStr += "transition: none;";
+        }
+        this.primaryLine.nativeElement.setAttribute("style", styleStr);
         if (this.indexCount >= 2) {
-            this.secondaryLineLeft = (140 + 120 * this.selectedIndexes[1]) - this.scrollLeft;
+            let styleStr = `left: ${(140 + 120 * this.selectedIndexes[1]) - this.scrollLeft}px;`;
+            if (!showTransition) {
+                styleStr += "transition: none;";
+            }
+            this.secondaryLine.nativeElement.setAttribute("style", styleStr);
         } else {
-            this.secondaryLineLeft = -120;
+            this.secondaryLine.nativeElement.setAttribute("style", "left: -100px; opacity: 0");
         }
     }
 
@@ -124,7 +139,7 @@ export class TableComponent {
             headers[i].scrollLeft = this.scrollLeft;
         }
         this.tableData.nativeElement.scrollLeft = this.scrollLeft;
-        this.updateLines();
+        this.updateLines(false);
     }
 
     dataScrolled(e: Event) {
@@ -133,7 +148,7 @@ export class TableComponent {
         for (var i = 0; i < headers.length; i++){
             headers[i].scrollLeft = this.scrollLeft;
         }
-        this.updateLines();
+        this.updateLines(false);
     }
 
     updateTableRows() {
