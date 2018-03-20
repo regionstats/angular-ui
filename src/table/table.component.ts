@@ -25,11 +25,12 @@ export class TableComponent {
     public stats: Stat[];
     public rowWidth: string;
     public scrollLeft: number = 0;
+    public scrollbarWidth: number = 0;
     public primaryLineLeft: number = -120;
     public secondaryLineLeft: number = -120;
 
     private verticalScrollFunctionRef: (e) => {};
-    private headerScrollFunctionRefs: Array<(e) => {}> = [];
+    private headerScrollFunctionRefs: Array<(e) => {}> = [null, null];
     private dataScrollFunctionRef: (e) => {};
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
@@ -54,18 +55,33 @@ export class TableComponent {
             setTimeout(() => {
                 let headers = document.getElementsByClassName("table-header");
                 for (let i = 0; i < headers.length; i++){
+                    if (this.headerScrollFunctionRefs[i]) {
+                        headers[i].removeEventListener("scroll", this.headerScrollFunctionRefs[i]);
+                    }
                     let headerScrollFunctionRef = this.headerScrolled.bind(this);
                     headers[i].addEventListener("scroll", headerScrollFunctionRef);
-                    this.headerScrollFunctionRefs.push(headerScrollFunctionRef);
+                    this.headerScrollFunctionRefs[i] = headerScrollFunctionRef;
                 }
+                this.tableData.nativeElement.removeEventListener("scroll", this.dataScrollFunctionRef);
                 this.dataScrollFunctionRef = this.dataScrolled.bind(this);
                 this.tableData.nativeElement.addEventListener("scroll", this.dataScrollFunctionRef);
+                this.scrollbarWidth = this.scrollContainer.offsetWidth - this.scrollContainer.clientWidth;
             });
         });
     }
 
     ngOnChanges(changes: SimpleChanges) {
         this.updateLines();
+    }
+
+    ngOnDestroy() {
+        let headers = document.getElementsByClassName("table-header");
+        for (let i = 0; i < headers.length; i++){
+            if (this.headerScrollFunctionRefs[i]) {
+                headers[i].removeEventListener("scroll", this.headerScrollFunctionRefs[i]);
+            }
+        }
+        this.scrollContainer.removeEventListener("scroll", this.verticalScrollFunctionRef);
     }
 
     headerClicked(event: MouseEvent, index: number) {
@@ -105,7 +121,6 @@ export class TableComponent {
         this.scrollLeft = (<any>e.target).scrollLeft;
         let headers = document.getElementsByClassName("table-header");
         for (var i = 0; i < headers.length; i++){
-            //headerRows[i].setAttribute("style", `margin-left: ${-this.scrollLeft}px; width: ${this.rowWidth};`);
             headers[i].scrollLeft = this.scrollLeft;
         }
         this.tableData.nativeElement.scrollLeft = this.scrollLeft;
@@ -116,7 +131,6 @@ export class TableComponent {
         this.scrollLeft = this.tableData.nativeElement.scrollLeft;
         let headers = document.getElementsByClassName("table-header");
         for (var i = 0; i < headers.length; i++){
-            //headerRows[i].setAttribute("style", `margin-left: ${-this.scrollLeft}px; width: ${this.rowWidth};`);
             headers[i].scrollLeft = this.scrollLeft;
         }
         this.updateLines();

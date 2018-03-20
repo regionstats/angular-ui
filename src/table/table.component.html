@@ -6,7 +6,7 @@
             <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
         </div>
     </div>
-    <div class="table-header-fixed-container" [style.top]="fixedHeader ? '0' : '-1000px'">
+    <div class="table-header-fixed-container" [style.top]="fixedHeader ? '0' : '-1000px'" [style.right.px]="scrollbarWidth">
         <div class="table-header-fixed">
             <ng-container *ngTemplateOutlet="templateHeader"></ng-container>
         </div>

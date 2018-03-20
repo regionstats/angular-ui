@@ -50,6 +50,7 @@ $border-color: #ccc;
 }
 .table-header-spacer{
     min-width: $region-width;
+    max-width: $region-width;
     border-top: 1px solid $border-color;
     border-left: 1px solid $border-color;
     transition: box-shadow 0.2s;
@@ -83,6 +84,7 @@ $border-color: #ccc;
 .table-region-column{
     z-index: 50;
     min-width: $region-width;
+    max-width: $region-width;
     transition: box-shadow 0.2s;
     &.shadow{
         border-right: 1px solid #888;
