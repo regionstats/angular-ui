@@ -1,16 +1,16 @@
 import { Component, Input, SimpleChange, SimpleChanges } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
-import { MapManager } from './map-manager';
-import * as Pako from 'pako';
 
-import { HttpClient } from '@angular/common/http'
 import { DataService } from '../services/data.service';
 import { Stat } from '../models/stat';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { ViewBox } from '../models/view-box';
 import { Observable } from 'rxjs/Observable';
+import { MapHelpers } from './map-helpers'
+import { take } from 'rxjs/operator/take';
+import { Task, TaskAttribute, AnimateService } from '../services/animate.service';
 
 @Component({
     selector: 'map-component',
@@ -19,11 +19,13 @@ import { Observable } from 'rxjs/Observable';
 export class MapComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
 
+    private svgElement: SVGSVGElement;
+    private defs: SVGDefsElement
+    private mapGroup: SVGGElement;
+    private regions: { [name: string]: SVGElement } = {}; 
+    
     private stat: Stat;
     public heightStr: string = "80vh";
-    private svg: SVGElement;
-    private svgRegions: { [name: string]: SVGElement } = {};
-    private mapManager: MapManager
 
     public currentView: string = "map";
 
@@ -31,8 +33,7 @@ export class MapComponent {
     @Input() midColor: Color;
     @Input() maxColor: Color;
 
-    constructor(private dateService: DataService) {
-        this.mapManager = new MapManager();
+    constructor(private dateService: DataService, private animateService: AnimateService) {
         this.minColor = new Color(224, 236, 255);
         this.midColor = new Color(0, 99, 255);
         this.maxColor = new Color(0, 16, 35);
@@ -40,14 +41,6 @@ export class MapComponent {
 
     ngOnInit() {
         this.load().subscribe(() => {
-            // let range = stat.max - calcResults.min;
-            // for(var key in this.stat.data){
-            //     zScores[key.toLowerCase()] = (this.stat.data[key].value - calcResults.mean) / calcResults.sd;
-            //     let ratio = (this.stat.data[key].value - 0) / range
-            //     colors[this.stat.data[key].region.toLowerCase()] = this.getColor(ratio);
-            // }
-            // this.mapManager.setColors(colors);
-
             this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
                 let stats = arr[0];
                 let indexes = arr[1];
@@ -60,9 +53,9 @@ export class MapComponent {
                     for (var key in this.stat.data) {
                         zScores[key.toLowerCase()] = (this.stat.data[key].value - calc.mean) / calc.sd;
                         let ratio = (this.stat.data[key].value - calc.min.value) / range
-                        colors[this.stat.data[key].region.toLowerCase()] = this.getColor(ratio);
+                        colors[this.stat.data[key].region.replace(/ /g, "-").toLowerCase()] = this.getColor(ratio);
                     }
-                    this.mapManager.setColors(colors);
+                    this.setColors(colors);
                 }
             })
 
@@ -83,10 +76,21 @@ export class MapComponent {
 
     private load() {
         var url = "assets/US.svg";
-        return this.mapManager.loadSVG(url).map((svg) => {
-            this.svgContainer.nativeElement.appendChild(svg);
-            this.setHeight(this.mapManager.getViewBoxRatio());
-        });
+        return MapHelpers.loadUnsafeSVG(url).do(unsafeSVG => {
+            let viewBox = new ViewBox(unsafeSVG);
+            this.svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            this.svgElement.appendChild(this.defs);
+            this.mapGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            this.copySVGChildren(unsafeSVG, this.mapGroup);
+
+            this.svgElement.appendChild(this.mapGroup);
+            this.svgElement.setAttribute("width", "100%");
+            this.svgElement.setAttribute("height", "100%");
+            this.svgElement.setAttribute("viewBox", viewBox.toString());
+            this.svgContainer.nativeElement.appendChild(this.svgElement);
+            this.setHeight(viewBox.height() / viewBox.width());
+        })
     }
 
     // height/width
@@ -121,35 +125,152 @@ export class MapComponent {
             + (Math.floor(newColor.b / 16)).toString(16) + Math.floor(newColor.b % 16).toString(16);
     }
 
-
-
-
-    //based on https://github.com/wgoto/optimal-std-dev
-    calcStdDev(arr) {
-        var I = arr.reduce(function (I, x, k) {
-            k = k + 1;
-            return {
-                Sg: I.Sg + x,
-                Mk: k === 1 ? x : I.Mk + ((x - I.Mk) / k),
-                Qk: k === 1 ? 0 : I.Qk + ((k - 1) * Math.pow(x - I.Mk, 2) / k),
-                min: x < I.min ? x : I.min,
-                max: x > I.max ? x : I.max,
+    public setColors(obj) {
+        for(var key in obj) {
+            if (this.regions[key]) {
+                this.regions[key].setAttribute("fill",obj[key]);
             }
-        }, { Sg: 0, Mk: 0, Qk: 0, min: 1 / 0, max: -1 / 0 });
+        }
+    }
 
-        var t = I.Sg;
-        var n = arr.length;
-        var m = t / n;
-        var variance = I.Qk / n;
-        var sd = Math.sqrt(variance);
 
-        return {
-            sum: I.Sg,
-            mean: I.Sg / n,
-            variance: variance,
-            sd: sd,
-            min: I.min,
-            max: I.max
-        };
+    private svgLeafs = ["path", "circle", "rect", "line"];
+    private copySVGChildren(unsafe: SVGElement, safe: SVGElement) {
+        for (var i = 0; i < unsafe.children.length; i++) {
+            let unsafeChild = unsafe.children[i];
+            if (unsafeChild.tagName == "g") {
+                let g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+                this.copySVGChildren(<SVGElement>unsafeChild, g);
+                safe.appendChild(g);
+                this.copySVGAttributes(<SVGElement>unsafeChild, g);
+                continue;
+            }
+            if (this.svgLeafs.indexOf(unsafeChild.tagName) >= 0) {
+                let el = document.createElementNS("http://www.w3.org/2000/svg", unsafeChild.tagName);
+                this.copySVGAttributes(<SVGElement>unsafeChild, el);
+                safe.appendChild(el);
+            } else {
+                //console.log("unsupported tag", unsafeChild.tagName, unsafeChild.children.length)
+            }
+        }
+    }
+
+    //tags in popular wikipedia maps:
+    //europe.svg ["d", "id", "style", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "sodipodi:nodetypes", "inkscape:connector-curvature", "transform", "y", "x", "height", "width", "clip-path"]
+    //US.svg ["name", "fill", "d", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "id", "stroke", "stroke-width", "cx", "cy", "r", "opacity"]
+    private svgAttributes = ["d", "style", "fill", "item", "transform", "stroke", "stroke-width", "y", "x", "cx", "cy", "r", "height", "width"]
+    private copySVGAttributes(unsafe: SVGElement, safe: SVGElement) {
+        for (var key in unsafe.attributes) {
+            let attr = unsafe.attributes[key];
+            if (attr.name && attr.value) {
+                if (this.svgAttributes.indexOf(attr.name) >= 0) {
+                    safe.setAttribute(attr.name, attr.value);
+                } else if (attr.name == "name") {
+                    let regionName = attr.value.replace(/ /g, "-").toLowerCase();
+                    safe.setAttribute("class", "trans");
+                    safe.setAttribute("stroke-width", "2");
+                    safe.setAttribute("id", "rs-" + regionName)
+                    this.regions[regionName] = safe;
+                    safe.addEventListener("mouseenter", this.mouseEnter.bind(this, regionName));
+                    safe.addEventListener("mouseleave", this.mouseLeave.bind(this, regionName))
+                }
+            }
+        }
+    }
+
+    private mouseEnter(key: string) {
+        let el = this.regions[key];
+        this.removeElement("rs-" + key);
+        this.mapGroup.appendChild(el);
+        this.regions[key] = el;
+        let id = "filter-" + key
+        el.setAttribute("filter", `url(#${ id })`)
+        let rect = el.getClientRects()[0];
+        let filter = this.getOffsetFilter(id, rect.width, rect.height)
+        this.defs.appendChild(this.getOffsetFilter(id, rect.width, rect.height));
+    }
+
+    private mouseLeave(key: string) {
+        let el = this.regions[key];
+        let id = "filter-" + key;
+        let rect = el.getClientRects()[0];
+
+        var tasks: Task[] = [];
+        let task = new Task("offset-" + id);
+        task.attributes.push(new TaskAttribute("dx", -3 / rect.width, 0))
+        task.attributes.push(new TaskAttribute("dy", -3 / rect.height, 0))
+        tasks.push(task);
+
+        task = new Task("blur-" + id);
+        task.attributes.push(new TaskAttribute("slope", 1, 0));
+        tasks.push(task);
+
+        this.animateService.startTasks(tasks, 100, () => {
+            el.removeAttribute("filter");
+            this.removeElement("filter-" + key)
+        });
+    }
+
+    private getOffsetFilter(id: string, width: number, height: number): SVGFilterElement {
+        var tasks: Task[] = [];
+
+        let filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+        filter.setAttribute("id", id);
+        filter.setAttribute("x", "-.5");
+        filter.setAttribute("y", "-.5");
+        filter.setAttribute("width", "2");
+        filter.setAttribute("height", "2");
+        filter.setAttribute("primitiveUnits", "objectBoundingBox");
+
+        let feOffset = document.createElementNS("http://www.w3.org/2000/svg", "feOffset");
+        feOffset.setAttribute("id", "offset-" + id);
+        feOffset.setAttribute("result", "offOut");
+        feOffset.setAttribute("in", "SourceGraphic");
+        feOffset.setAttribute("dx", "0");
+        feOffset.setAttribute("dy", "0");
+        feOffset.setAttribute("result", "offOut");
+        
+        let task = new Task("offset-" + id);
+        task.attributes.push(new TaskAttribute("dx", 0, -3 / width))
+        task.attributes.push(new TaskAttribute("dy", 0, -3 / height))
+        tasks.push(task);
+
+        let feComponentTransfer = document.createElementNS("http://www.w3.org/2000/svg", "feComponentTransfer");
+        feComponentTransfer.setAttribute("in", "SourceAlpha")
+        feComponentTransfer.setAttribute("result", "componentOut")
+        let feFuncA = document.createElementNS("http://www.w3.org/2000/svg", "feFuncA");
+        feFuncA.setAttribute("id", "blur-" + id);
+        feFuncA.setAttribute("type", "linear");
+        feFuncA.setAttribute("slope", "0");
+        feComponentTransfer.appendChild(feFuncA);
+
+        task = new Task("blur-" + id);
+        task.attributes.push(new TaskAttribute("slope", 0, 1));
+        tasks.push(task);
+
+        let feGaussianBlur = document.createElementNS("http://www.w3.org/2000/svg", "feGaussianBlur");
+        feGaussianBlur.setAttribute("in", "componentOut");
+        feGaussianBlur.setAttribute("result", "blurOut");
+        feGaussianBlur.setAttribute("stdDeviation",(10 / (width + height)).toString());
+
+        let feBlend = document.createElementNS("http://www.w3.org/2000/svg", "feBlend");
+        feBlend.setAttribute("in", "offOut");
+        feBlend.setAttribute("in2", "blurOut");
+        feBlend.setAttribute("mode", "normal");
+
+        filter.appendChild(feOffset);
+        filter.appendChild(feComponentTransfer);
+        filter.appendChild(feGaussianBlur);
+        filter.appendChild(feBlend);
+
+        this.animateService.startTasks(tasks, 100);
+        return filter;
+    }
+
+    private removeElement(id: string) {
+        let el = document.getElementById(id);
+        if (el) {
+            el.parentNode.removeChild(el);
+        }
     }
 }

@@ -9,9 +9,7 @@ export class AnimateService {
 
     constructor() { }
 
-    startTasks(tasks: Task[], duration: number, intervalTime = 5) {
-        let expected = duration / intervalTime;
-        let count = 0;
+    startTasks(tasks: Task[], duration: number, callback?: () => any) {
         let container = new TaskMapContainer();
         container.map = {};
         /*
@@ -40,7 +38,6 @@ export class AnimateService {
         container.endTime = container.prevTime + duration;
         let map = container.map;
         let intervalId = setInterval(() => {
-            count++
             let now = Date.now();
             let percent = (now - container.prevTime) / (container.endTime - container.prevTime);
             for (let key in map) {
@@ -60,8 +57,11 @@ export class AnimateService {
             if (percent >= 1) {
                 clearInterval(intervalId);
                 this.taskMapContainers = this.taskMapContainers.filter(z => z != container);
+                if (typeof callback == "function") {
+                    callback();
+                }
             }
-        }, intervalTime);
+        }, 5);
     }
 }
 
