@@ -122,6 +122,14 @@
                         <input class="form-control" id="region-type-input" [(ngModel)]="selectedStat.regionType">
                     </div>
                 </div>
+                <div class="row mt-2">
+                    <div class="col-3">
+                        <label for="region-intermediary-input" class="col-form-label">Region Intermediary</label>
+                    </div>
+                    <div class="col-9">
+                        <input class="form-control" id="region-intermediary-input" [(ngModel)]="selectedStat.regionIntermediary">
+                    </div>
+                </div>
             </div>
             <div *ngIf="tab == 'source'">
                 <div class="row mt-2">
@@ -183,7 +191,7 @@
                         </button>
                     </div>
                 </div>
-                <div *ngIf="selectedStat.data && selectedStat.data.length">
+                <div *ngIf="!selectedStat.regionIntermediary">
                     <div class="row mt-2">
                         <div class="col-5">
                             <strong class="pl-2">
@@ -204,6 +212,42 @@
                             <input type="number" class="form-control" [(ngModel)]="data.value">
                         </div>
                         <div class="col-2">
+                            <button class="btn btn-outline-secondary" (click)="removeData(i)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="selectedStat.regionIntermediary">
+                    <div class="row mt-2">
+                        <div class="col-4">
+                            <strong class="pl-2">
+                                <span class="pl-1">{{selectedStat.regionIntermediary}}</span>
+                            </strong>
+                        </div>
+                        <div class="col-4">
+                            <strong class="pl-2">
+                                <span class="pl-1">{{selectedStat.regionType}}</span>
+                            </strong>
+                        </div>
+                        <div class="col-3">
+                            <strong class="pl-2">
+                                <span class="pl-1">Value</span>
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="row mt-1" *ngFor="let data of selectedStat.data; let i = index">
+                        <div class="col-4">
+                            <input class="form-control" [(ngModel)]="data.parent">
+                        </div>
+                        <div class="col-4">
+                            <input class="form-control" [(ngModel)]="data.region">
+                        </div>
+                        <div class="col-3">
+                            <input type="number" class="form-control" [(ngModel)]="data.value">
+                        </div>
+                        <div class="col-1">
                             <button class="btn btn-outline-secondary" (click)="removeData(i)">
                                 <i class="fas fa-times"></i>
                             </button>

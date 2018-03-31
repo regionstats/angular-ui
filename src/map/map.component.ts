@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
 import { MapHelpers } from './map-helpers'
 import { take } from 'rxjs/operator/take';
 import { Task, TaskAttribute, AnimateService } from '../services/animate.service';
+import { Data } from '../models/data';
 
 @Component({
     selector: 'map-component',
@@ -53,7 +54,7 @@ export class MapComponent {
                     for (var key in this.stat.data) {
                         zScores[key.toLowerCase()] = (this.stat.data[key].value - calc.mean) / calc.sd;
                         let ratio = (this.stat.data[key].value - calc.min.value) / range
-                        colors[this.stat.data[key].region.replace(/ /g, "-").toLowerCase()] = this.getColor(ratio);
+                        colors[this.getRegionId(this.stat.data[key])] = this.getColor(ratio);
                     }
                     this.setColors(colors);
                 }
@@ -74,17 +75,26 @@ export class MapComponent {
         console.log("changes", changes, this.stat);
     }
 
+    private getRegionId(data: Data): string {
+        if (data.parent) {
+            return data.region.replace(/ /g, "-").toLowerCase() + "," + data.parent.replace(/ /g, "-").toLowerCase();
+        }
+        return data.region.replace(/ /g, "-").toLowerCase()
+    }
+
     private load() {
-        var url = "assets/US.svg";
+        //var url = "assets/Counties.svg";
+        var url = "assets/US.svg"
         return MapHelpers.loadUnsafeSVG(url).do(unsafeSVG => {
             let viewBox = new ViewBox(unsafeSVG);
             this.svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
             this.svgElement.appendChild(this.defs);
+            let unsafeRegionGroup = this.getUnsafeRegionGroup(unsafeSVG);
             this.mapGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            this.copySVGChildren(unsafeSVG, this.mapGroup);
-
+            this.copySVGChildren(unsafeRegionGroup, this.mapGroup);
             this.svgElement.appendChild(this.mapGroup);
+            this.copySVGChildren(unsafeSVG, this.svgElement);
             this.svgElement.setAttribute("width", "100%");
             this.svgElement.setAttribute("height", "100%");
             this.svgElement.setAttribute("viewBox", viewBox.toString());
@@ -126,11 +136,22 @@ export class MapComponent {
     }
 
     public setColors(obj) {
-        for(var key in obj) {
+        for (var key in obj) {
             if (this.regions[key]) {
                 this.regions[key].setAttribute("fill",obj[key]);
             }
         }
+    }
+    private getUnsafeRegionGroup(unsafe: SVGElement): SVGElement {
+        for (var i = 0; i < unsafe.children.length; i++) {
+            let unsafeChild = unsafe.children[i];
+            let id = unsafeChild.getAttribute("id");
+            if (id == "region-group") {
+                unsafe.removeChild(unsafeChild);
+                return <SVGElement>unsafeChild;    
+            }
+        }
+        return unsafe;
     }
 
 
@@ -167,8 +188,6 @@ export class MapComponent {
                     safe.setAttribute(attr.name, attr.value);
                 } else if (attr.name == "name") {
                     let regionName = attr.value.replace(/ /g, "-").toLowerCase();
-                    safe.setAttribute("class", "trans");
-                    safe.setAttribute("stroke-width", "2");
                     safe.setAttribute("id", "rs-" + regionName)
                     this.regions[regionName] = safe;
                     safe.addEventListener("mouseenter", this.mouseEnter.bind(this, regionName));

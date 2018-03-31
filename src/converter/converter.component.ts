@@ -117,6 +117,23 @@ export class ConverterComponent {
         if (this.statMessage) {
             return;
         }
+        this.stats.forEach((stat, i) => {
+            stat.data.forEach((data, j) => {
+                if (!data.region) {
+                    this.statMessage = "Stat " + (i + 1) + " row " + (j + 1) + " has no " + stat.regionType;
+                }
+                if (stat.regionIntermediary && !data.parent) {
+                    this.statMessage = "Stat " + (i + 1) + " row " + (j + 1) + " has no " +  stat.regionIntermediary;
+                }
+                if (this.statMessage) {
+                    this.selectedStat = stat;
+                    this.tab = "data";
+                    return false;
+                }
+            })
+            return this.statMessage;
+        });
+
         this.jsonMessage = "";
         this.jsonLength = JSON.stringify({stats: this.stats}).length;
         this.json = JSON.stringify({stats: this.stats}, null, 5);
@@ -157,6 +174,7 @@ export class ConverterComponent {
             this.tsvMessage = "No Text in Clipboard";
             return;
         }
+        let hasInter = this.selectedStat.regionIntermediary ? 1 : 0;
         let dataArray: Data[] = [];
         let rows = str.split(/[\r\n]+/g);
         rows.forEach((row, i) => {
@@ -164,8 +182,8 @@ export class ConverterComponent {
                 return false;
             }
             let columns = row.split("\t");
-            if (columns.length < 2) {
-                this.tsvMessage = "Error in Row " + (i + 1) + ": row must have 2 columns";
+            if (columns.length < 2 + hasInter) {
+                this.tsvMessage = "Error in Row " + (i + 1) + ": row must have " + (2 + hasInter) + " columns";
                 return false;
             }
             if (columns[0].length == 0) {
@@ -176,14 +194,21 @@ export class ConverterComponent {
                 this.tsvMessage = "Error in Row " + (i + 1) + ", Col B: cell is empty";
                 return false;
             }
-            let matches = columns[1].trim().replace(",", "").match(/^([0-9.]+) ?%?$/);
+            if (hasInter && columns[2].length == 0) {
+                this.tsvMessage = "Error in Row " + (i + 1) + ", Col C: cell is empty";
+                return false;
+            }
+            let matches = columns[1 + hasInter].trim().replace(",", "").match(/^([0-9.]+) ?%?$/);
             if (!matches) {
-                this.tsvMessage = "Error in Row " + (i + 1) + ', Col B: "' + columns[1] + '" is not a valid number';
+                this.tsvMessage = "Error in Row " + (i + 1) + ', Col B: "' + columns[1 + hasInter] + '" is not a valid number';
                 return false;
             }
             let data = new Data();
-            data.region = columns[0];
-            data.value = parseFloat(columns[1]);
+            data.region = columns[0 + hasInter];
+            data.value = parseFloat(columns[1 + hasInter]);
+            if (hasInter) {
+                data.parent = columns[0];
+            }
             dataArray.push(data);
         });
         if (this.selectedStat.data && this.selectedStat.data) {

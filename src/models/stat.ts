@@ -7,6 +7,7 @@ export class Stat {
     data: Data[];
     regionName: string;
     regionType: string;
+    regionIntermediary: string;
     year: number;
     source: Source;
     regionMap: string;

@@ -14,7 +14,7 @@ export class ViewBox {
         let attribute = svg.getAttribute("viewBox");
         if (attribute) {
             let bounds = attribute.split(" ");
-            if (bounds.length == 4 && /^[0-9 ]+$/.test(attribute)) {
+            if (bounds.length == 4 && /^[0-9 .]+$/.test(attribute)) {
                 this.left = parseFloat(bounds[0])
                 this.top = parseFloat(bounds[1]);
                 this.right = parseFloat(bounds[2]);

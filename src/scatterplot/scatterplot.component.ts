@@ -70,6 +70,9 @@ export class ScatterplotComponent {
         this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
             let stats = arr[0];
             let indexes = arr[1];
+            if (!stats || stats.length < 2) {
+                return;
+            }
             this.statX = stats[indexes[0]];
             this.statY = stats[indexes[1]];
             this.statsChanged();
@@ -199,7 +202,7 @@ export class ScatterplotComponent {
             }
         }
         if (tasks.length) {
-            this.animateService.startTasks(tasks, 300, 10);
+            this.animateService.startTasks(tasks, 300);
         }
         this.updateAvgText();
         this.updateCurrentDot();

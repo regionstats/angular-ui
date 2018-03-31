@@ -5,15 +5,18 @@ import { Source } from '../models/source';
 import * as Pako from 'pako';
 import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { HashService } from './hash.service';
 @Injectable()
 export class ParserService {
+    constructor(private hashService: HashService) {
+    }
+
     public tryParseUrlParam(url: string, dictionary?: string): object | string {
         let index = url.indexOf("?") + 1;
         if (!index) {
@@ -114,9 +117,8 @@ export class ParserService {
     }
 
     private optionalHashWrapper(input: any): Observable<any> {
-        if (typeof input == "string" && /^[0-9a-fA-F]{64}/.test(input)) {
-            //TODO hashService
-            return Observable.of(input); //this.http.get("https://gateway.ipfs.io/ipfs/" + input);
+        if (typeof input == "string" && /^[0-9a-zA-Z]{46}/.test(input)) {
+            return this.hashService.get(input);
         } else {
             return Observable.of(input);
         }
@@ -165,6 +167,11 @@ export class ParserService {
         if (typeof regionType == "string") {
             stat.regionType = regionType;
         }
+        //REGION INTERMEDIARY
+        let regionIntermediary = obj.ri || obj.regionintermediary
+        if (typeof regionIntermediary == "string") {
+            stat.regionIntermediary = regionIntermediary;
+        }
         //YEAR
         let year = obj.y || obj.year;
         if (typeof year == "number") {
@@ -188,7 +195,7 @@ export class ParserService {
         }
         return Observable.of(stat);
     }
-    //todo: add parent and type
+    //todo: add type
     private tryParseData(obj: any): Data | string {
         obj = Object.keys(obj).reduce((a, k) => (a[k.toLowerCase()] = obj[k], a), {});
         let data = new Data();
@@ -204,6 +211,11 @@ export class ParserService {
             return "region must be a string";
         }
         data.region = region;
+        //PARENT
+        let parent = obj.p || obj.parent;
+        if (typeof parent == "string") {
+            data.parent = parent;
+        }
         return data;
     }
 

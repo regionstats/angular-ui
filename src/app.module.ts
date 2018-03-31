@@ -10,7 +10,8 @@ import { MapComponent } from './map/map.component';
 import { TableComponent } from './table/table.component';
 import { ConverterComponent } from './converter/converter.component';
 import { ScatterplotComponent } from './scatterplot/scatterplot.component';
-import {AnimateService} from './services/animate.service'
+import { AnimateService } from './services/animate.service'
+import { HashService } from './services/hash.service'
 
 @NgModule({
     declarations: [
@@ -29,7 +30,8 @@ import {AnimateService} from './services/animate.service'
     providers: [
         DataService,
         ParserService,
-        AnimateService
+        AnimateService,
+        HashService
     ],
     bootstrap: [AppComponent]
 })
