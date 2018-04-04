@@ -25,7 +25,7 @@ export class MapComponent {
     private mapGroup: SVGGElement;
     private regions: { [name: string]: SVGElement } = {}; 
     
-    private stat: Stat;
+    public stat: Stat;
     public heightStr: string = "80vh";
 
     public currentView: string = "map";

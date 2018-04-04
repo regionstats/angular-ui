@@ -33,7 +33,7 @@ export class TableComponent {
     private fixedHeader: boolean = false;
     private scrollContainer: HTMLElement;
     private selectedIndexes: number[] = [0, 1];
-    private updateLineTimeout: number;
+    private updateLineTimeout: any;
 
     constructor(private dataService: DataService) {
     }

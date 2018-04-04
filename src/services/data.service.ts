@@ -1,7 +1,6 @@
 
 import { Page } from '../models/page';
 import { Stat } from '../models/stat';
-import * as Pako from 'pako';
 import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';

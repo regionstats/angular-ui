@@ -10,8 +10,9 @@ import { MapComponent } from './map/map.component';
 import { TableComponent } from './table/table.component';
 import { ConverterComponent } from './converter/converter.component';
 import { ScatterplotComponent } from './scatterplot/scatterplot.component';
-import { AnimateService } from './services/animate.service'
-import { HashService } from './services/hash.service'
+import { AnimateService } from './services/animate.service';
+import { HashService } from './services/hash.service';
+import { BlockRenderComponent } from './common/block-render.component';
 
 @NgModule({
     declarations: [
@@ -20,7 +21,8 @@ import { HashService } from './services/hash.service'
         MapComponent,
         TableComponent,
         ConverterComponent,
-        ScatterplotComponent
+        ScatterplotComponent,
+        BlockRenderComponent
     ],
     imports: [
         BrowserModule,

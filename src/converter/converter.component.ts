@@ -5,6 +5,8 @@ import { Stat } from '../models/stat';
 import { Page } from '../models/page';
 import { Source } from '../models/source';
 import { Data } from '../models/data';
+import * as ReadExcel from 'read-excel-file';
+import { BlockRenderComponent } from '../common/block-render.component';
 
 @Component({
     selector: 'converter-component',

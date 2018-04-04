@@ -23,8 +23,8 @@ export class ScatterplotComponent {
     public width: number;
     public dotMap: { [region: string]: Dot } = {};
 
-    private statX: Stat;
-    private statY: Stat;
+    public statX: Stat;
+    public statY: Stat;
 
     private svgElement: SVGSVGElement;
     private sdMarkersGroup: SVGGElement;
@@ -38,7 +38,7 @@ export class ScatterplotComponent {
     private slope: number;
     private intercept: number;
 
-    private currentDot: Dot;
+    public currentDot: Dot;
     private currentClickDot: Dot;
     private currentHoverDot: Dot;
 

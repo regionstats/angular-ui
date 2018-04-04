@@ -204,18 +204,20 @@
                             </strong>
                         </div>
                     </div>
-                    <div class="row mt-1" *ngFor="let data of selectedStat.data; let i = index">
-                        <div class="col-5">
-                            <input class="form-control" [(ngModel)]="data.region">
-                        </div>
-                        <div class="col-5">
-                            <input type="number" class="form-control" [(ngModel)]="data.value">
-                        </div>
-                        <div class="col-2">
-                            <button class="btn btn-outline-secondary" (click)="removeData(i)">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                    <div class="row mt-1" block-render [items]="selectedStat.data" [itemHeight]="36">
+                        <ng-template #itemTemplate let-data="item">
+                            <div class="col-5">
+                                <input class="form-control" [(ngModel)]="data.region">
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" [(ngModel)]="data.value">
+                            </div>
+                            <div class="col-2">
+                                <button class="btn btn-outline-secondary" (click)="removeData(1)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </ng-template>
                     </div>
                 </div>
 
@@ -237,21 +239,23 @@
                             </strong>
                         </div>
                     </div>
-                    <div class="row mt-1" *ngFor="let data of selectedStat.data; let i = index">
-                        <div class="col-4">
-                            <input class="form-control" [(ngModel)]="data.parent">
-                        </div>
-                        <div class="col-4">
-                            <input class="form-control" [(ngModel)]="data.region">
-                        </div>
-                        <div class="col-3">
-                            <input type="number" class="form-control" [(ngModel)]="data.value">
-                        </div>
-                        <div class="col-1">
-                            <button class="btn btn-outline-secondary" (click)="removeData(i)">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                    <div class="row mt-1" block-render [items]="selectedStat.data" [itemHeight]="36">
+                        <ng-template #itemTemplate let-data="item">
+                            <div class="col-4">
+                                <input class="form-control" [(ngModel)]="data.parent">
+                            </div>
+                            <div class="col-4">
+                                <input class="form-control" [(ngModel)]="data.region">
+                            </div>
+                            <div class="col-3">
+                                <input type="number" class="form-control" [(ngModel)]="data.value">
+                            </div>
+                            <div class="col-1">
+                                <button class="btn btn-outline-secondary" (click)="removeData(1)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </ng-template>
                     </div>
                 </div>
 
