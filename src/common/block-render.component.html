@@ -1,6 +1,6 @@
 <ng-template ngFor let-block [ngForOf]="blocks">
     <ng-template *ngIf="block.render" ngFor let-i [ngForOf]="block.indexes">
-        <ng-container *ngTemplateOutlet="itemTemplateRef; context: { item: items[i] }"></ng-container>
+        <ng-container *ngTemplateOutlet="itemTemplateRef; context: { item: items[i], index: i }"></ng-container>
     </ng-template>
     <div *ngIf="!block.render" [style.height.px]="block.indexes.length * itemHeight" class="text-center col-12">
         <br />

@@ -205,7 +205,7 @@
                         </div>
                     </div>
                     <div class="row mt-1" block-render [items]="selectedStat.data" [itemHeight]="36">
-                        <ng-template #itemTemplate let-data="item">
+                        <ng-template #itemTemplate let-data="item" let-index="index">
                             <div class="col-5">
                                 <input class="form-control" [(ngModel)]="data.region">
                             </div>
@@ -213,7 +213,7 @@
                                 <input type="number" class="form-control" [(ngModel)]="data.value">
                             </div>
                             <div class="col-2">
-                                <button class="btn btn-outline-secondary" (click)="removeData(1)">
+                                <button class="btn btn-outline-secondary" (click)="removeData(index)">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -240,7 +240,7 @@
                         </div>
                     </div>
                     <div class="row mt-1" block-render [items]="selectedStat.data" [itemHeight]="36">
-                        <ng-template #itemTemplate let-data="item">
+                        <ng-template #itemTemplate let-data="item" let-index="index">
                             <div class="col-4">
                                 <input class="form-control" [(ngModel)]="data.parent">
                             </div>
@@ -251,7 +251,7 @@
                                 <input type="number" class="form-control" [(ngModel)]="data.value">
                             </div>
                             <div class="col-1">
-                                <button class="btn btn-outline-secondary" (click)="removeData(1)">
+                                <button class="btn btn-outline-secondary" (click)="removeData(index)">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>

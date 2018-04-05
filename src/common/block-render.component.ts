@@ -23,6 +23,7 @@ export class BlockRenderComponent<T>{
     private detectChangeTimeout: any;
     private ScrollFunctionRef: (e) => {};
     private scrollContainer: HTMLElement;
+    private prevItemsLength: number;
 
     constructor(
         private elementRef: ElementRef,
@@ -45,17 +46,19 @@ export class BlockRenderComponent<T>{
         this.initialized = true;
     }
 
-    ngOnChanges(changes: SimpleChanges) {
-        if (changes.itemHeight || changes.blockSize) {
-            this.blockHeight = this.itemsPerBlock * this.itemHeight;
-        }
+    ngDoCheck() {
+        this.blockHeight = this.itemsPerBlock * this.itemHeight;
         if (this.initialized) {
-            this.updateBlocksIndexes();
-            this.updateBlocksVisibility();
+            if (this.items && this.items.length != this.prevItemsLength) {
+                this.prevItemsLength = this.items.length;
+                this.updateBlocksIndexes();
+                this.updateBlocksVisibility();
+            }
         }
     }
 
     private updateBlocksIndexes() {
+        console.log("updateBlocksIndexes")
         if (!Array.isArray(this.items)) {
             return;
         }
