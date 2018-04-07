@@ -58,7 +58,6 @@ export class BlockRenderComponent<T>{
     }
 
     private updateBlocksIndexes() {
-        console.log("updateBlocksIndexes")
         if (!Array.isArray(this.items)) {
             return;
         }
