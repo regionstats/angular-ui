@@ -18,6 +18,7 @@ export class ConverterComponent {
     public url: string;
     public urlMessage: string;
     public jsonMessage: string;
+    public isJsonMessageWarning: boolean;
     public dictionary: string;
     public urlLength: number;
     public jsonLength: number;
@@ -81,7 +82,7 @@ export class ConverterComponent {
         this.urlMessage = "";
     }
 
-    fillInForm() {
+    jsonToForm() {
         if (!this.json) {
             this.jsonMessage = "JSON is empty";
             return;
@@ -93,13 +94,18 @@ export class ConverterComponent {
             return;
         }
         this.parserService.tryParsePage(obj).subscribe((pageParseResult) => {
-            if (typeof pageParseResult == "string") {
-                this.jsonMessage = pageParseResult;
+            this.isJsonMessageWarning = pageParseResult.status == "warn";
+            if (pageParseResult.status == "error") {
+                this.jsonMessage = pageParseResult.errorMessages[0];
                 return;
             }
-            this.jsonMessage = "";
+            if (pageParseResult.errorMessages) {
+                this.jsonMessage = pageParseResult.errorMessages[0];
+            } else {
+                this.jsonMessage = "";
+            }
             this.statMessage = "";
-            this.stats = pageParseResult.stats;
+            this.stats = pageParseResult.result.stats;
             this.selectedStat = this.stats[0];
         });
     }

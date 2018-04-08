@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { AsyncSubject } from 'rxjs/AsyncSubject';
-
+import 'rxjs/add/operator/timeout';
 
 @Injectable()
 export class HashService {
@@ -21,11 +21,23 @@ export class HashService {
         }
         let subject = new AsyncSubject<any>();
         this.activeRequests[hash] = subject;
-        this.http.get("https://gateway.ipfs.io/ipfs/" + hash).subscribe(result => {
-            subject.next(result);
+        this.http.get("https://gateway.ipfs.io/ipfs/" + hash).timeout(10000).subscribe(result => {
+            this.hashValues[hash] = result; 
+            subject.next(this.hashValues[hash]);
+            subject.complete();
+            delete this.activeRequests[hash];
+        }, error => {
+            this.hashValues[hash] = new HashError(hash); 
+            subject.next(this.hashValues[hash]);
             subject.complete();
             delete this.activeRequests[hash];
         })
         return subject.asObservable();
+    }
+}
+export class HashError{
+    hash: string;
+    constructor(hash: string) {
+        this.hash = hash;
     }
 }

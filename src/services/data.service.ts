@@ -4,7 +4,7 @@ import { Stat } from '../models/stat';
 import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
-import { ParserService } from './parser.service';
+import { ParserService, ParseResult } from './parser.service';
 import { Calculation } from '../models/calculation';
 import { BehaviorSubject } from 'rxjs';
 
@@ -31,23 +31,23 @@ export class DataService {
         }
     }
 
-    public loadPage(): Observable<string | Page> {
+    public loadPage(): Observable<ParseResult<Page>> {
         return new Observable((observer) => {
             let urlParseResult = this.parserService.tryParseUrlParam(window.location.href);
             if (typeof urlParseResult == "string") {
-                observer.next(urlParseResult);
+                observer.next(new ParseResult<Page>("error", null, [urlParseResult]));
             } else {
-                this.parserService.tryParsePage(urlParseResult).subscribe(page => {
-                    if (typeof page == "string") {
+                this.parserService.tryParsePage(urlParseResult).subscribe(parseResult => {
+                    if (parseResult.status == "error") {
                         this.statsSubject.next(null);
-                        observer.next(page);
+                        observer.next(parseResult);
                     } else {
-                        this.page = page;
-                        page.stats.forEach(z => {
+                        this.page = parseResult.result;
+                        this.page.stats.forEach(z => {
                             z.calc = new Calculation(z.data);
                         })
-                        observer.next(page);
-                        this.statsSubject.next(page.stats);
+                        this.statsSubject.next(this.page.stats);
+                        observer.next(parseResult);
                     }
                 })
             }

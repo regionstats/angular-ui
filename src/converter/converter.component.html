@@ -37,15 +37,15 @@
                 <label for="json-input">
                     <strong>JSON</strong> {{jsonLength}}
                 </label>
-                <textarea class="form-control" [class.is-invalid]="jsonMessage" [(ngModel)]="json" id="json-input" rows=5></textarea>
-                <div class="invalid-feedback">
+                <textarea class="form-control" [class.is-invalid]="jsonMessage && !isJsonMessageWarning" [(ngModel)]="json" id="json-input" rows=5></textarea>
+                <div *ngIf="jsonMessage" class="text-warning" [class.text-danger]="!isJsonMessageWarning" style="font-size: 80%;">
                     {{jsonMessage}}
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-auto">
-                    <button class="btn btn-outline-primary" (click)="fillInForm()">
+                    <button class="btn btn-outline-primary" (click)="jsonToForm()">
                         <i class="fas fa-arrow-down "></i>
                         Fill in Form
                     </button>
@@ -95,6 +95,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" [class.active]="tab == 'data'" (click)="tab = 'data'" tabindex>Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" [class.active]="tab == 'ipfs'" (click)="tab = 'ipfs'" tabindex>IPFS</a>
                 </li>
             </ul>
             <div *ngIf="tab == 'main'">
@@ -315,7 +318,9 @@
                         </ng-template>
                     </div>
                 </div>
-
+            </div>
+            <div *ngIf="tab == 'ipfs'">
+                <p>IPFS support in development</p>
             </div>
         </div>
     </div>
