@@ -283,22 +283,22 @@ export class ScatterplotComponent {
     private getDotMap(): { [region: string]: Dot } {
         let dotMap = {};
         this.statX.data.forEach(data => {
-            let dot = dotMap[data.region];
+            let dot = dotMap[data.r];
             if (!dot) {
-                dot = new Dot(data.region);
-                dotMap[data.region] = dot;
+                dot = new Dot(data.r);
+                dotMap[data.r] = dot;
             }
-            dot.x = (data.value - this.statX.calc.mean) / this.statX.calc.sd;
-            dot.xValue = data.value
+            dot.x = (data.v - this.statX.calc.mean) / this.statX.calc.sd;
+            dot.xValue = data.v
         });
         this.statY.data.forEach(data => {
-            let dot = dotMap[data.region];
+            let dot = dotMap[data.r];
             if (!dot) {
-                dot = new Dot(data.region);
-                dotMap[data.region] = dot;
+                dot = new Dot(data.r);
+                dotMap[data.r] = dot;
             }
-            dot.y = (data.value - this.statY.calc.mean) / this.statY.calc.sd;
-            dot.yValue = data.value
+            dot.y = (data.v - this.statY.calc.mean) / this.statY.calc.sd;
+            dot.yValue = data.v
         });
         return dotMap;
     }

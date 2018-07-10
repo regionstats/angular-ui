@@ -1,6 +1,7 @@
 import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import * as Pako from 'pako';
 import { ParserService } from '../services/parser.service'
+import { HashService } from '../services/hash.service'
 import { Stat } from '../models/stat';
 import { Page } from '../models/page';
 import { Source } from '../models/source';
@@ -8,6 +9,7 @@ import { Data } from '../models/data';
 import readXlsxFile from 'read-excel-file';
 import { BlockRenderComponent } from '../common/block-render.component';
 import { Observable } from 'rxjs';
+import { validatePageAsync } from '@regionstats/validator';
 
 @Component({
     selector: 'converter-component',
@@ -38,7 +40,7 @@ export class ConverterComponent {
     selectedValueColumn: string = 'B';
     selectedIntermediaryColumn: string = 'Filename';
 
-    constructor(private parserService: ParserService) {
+    constructor(private parserService: ParserService, private hashService: HashService) {
     }
 
     ngOnInit() {
@@ -93,19 +95,14 @@ export class ConverterComponent {
             this.jsonMessage = e.message;
             return;
         }
-        this.parserService.tryParsePage(obj).subscribe((pageParseResult) => {
-            this.isJsonMessageWarning = pageParseResult.status == "warn";
-            if (pageParseResult.status == "error") {
-                this.jsonMessage = pageParseResult.errorMessages[0];
+        validatePageAsync(obj, this.hashService.get.bind(this.hashService)).subscribe(err => {
+            if (err) {
+                this.jsonMessage = err;
                 return;
             }
-            if (pageParseResult.errorMessages) {
-                this.jsonMessage = pageParseResult.errorMessages[0];
-            } else {
-                this.jsonMessage = "";
-            }
+            this.jsonMessage = "";
             this.statMessage = "";
-            this.stats = pageParseResult.result.stats;
+            this.stats = (obj as Page).stats;
             this.selectedStat = this.stats[0];
         });
     }
@@ -136,10 +133,10 @@ export class ConverterComponent {
         }
         this.stats.forEach((stat, i) => {
             stat.data.forEach((data, j) => {
-                if (!data.region) {
+                if (!data.r) {
                     this.statMessage = "Stat " + (i + 1) + " row " + (j + 1) + " has no " + stat.regionType;
                 }
-                if (stat.regionIntermediary && !data.parent) {
+                if (stat.regionIntermediary && !data.i) {
                     this.statMessage = "Stat " + (i + 1) + " row " + (j + 1) + " has no " +  stat.regionIntermediary;
                 }
                 if (this.statMessage) {
@@ -325,7 +322,7 @@ export class ConverterComponent {
                 continue;
             }
             if (typeof regionIntermediary == "string") {
-                data.parent = regionIntermediary;
+                data.i = regionIntermediary;
             } else if (typeof regionIntermediary == "number") {
                 if (regionIntermediary >= input[i].length) {
                     return `Row ${i + 1}, Col ${String.fromCharCode(regionIntermediary + 65)}: row is only ${input[i].length} columns wide`;
@@ -333,7 +330,7 @@ export class ConverterComponent {
                 if (!input[i][regionIntermediary]) {
                     return `Row ${i + 1}, Col ${String.fromCharCode(regionIntermediary+65)}: cell is empty`;
                 }
-                data.parent = input[i][regionIntermediary];
+                data.i = input[i][regionIntermediary];
             }
             if (regionIndex >= input[i].length) {
                 return `Row ${i + 1}, Col ${String.fromCharCode(regionIndex+65)}: row is only ${input[i].length} columns wide`;
@@ -341,7 +338,7 @@ export class ConverterComponent {
             if (!input[i][regionIndex]) {
                 return `Row ${i + 1}, Col ${String.fromCharCode(regionIndex+65)}: cell is empty`;
             }
-            data.region = input[i][regionIndex];
+            data.r = input[i][regionIndex];
             if (valueIndex >= input[i].length) {
                 return `Row ${i + 1}, Col ${String.fromCharCode(valueIndex+65)}: row is only ${input[i].length} columns wide`;
             }
@@ -350,7 +347,7 @@ export class ConverterComponent {
             if (!matches) {
                 return `Row ${i + 1}, Col ${String.fromCharCode(valueIndex + 65)}: '${input[i][valueIndex]}' is not a valid number`;
             }
-            data.value = parseFloat(noCommas);
+            data.v = parseFloat(noCommas);
             dataArray.push(data);
         };
         return dataArray;

@@ -3,7 +3,9 @@ import { Page } from '../models/page';
 import { Stat } from '../models/stat';
 import { Observable ,  ReplaySubject ,  BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { ParserService, ParseResult } from './parser.service';
+import { ParserService } from './parser.service';
+import { HashService } from './hash.service';
+import { validatePageAsync } from '@regionstats/validator';
 import { Calculation } from '../models/calculation';
 
 
@@ -13,7 +15,7 @@ export class DataService {
     private selectedIndexesSubject: BehaviorSubject<number[]> = new BehaviorSubject<number[]>([0, 1]);
     private page: Page
 
-    constructor(private parserService: ParserService) { }
+    constructor(private parserService: ParserService, private hashService: HashService) { }
 
     public getStats(): Observable<Stat[]> {
         return this.statsSubject.asObservable();
@@ -29,24 +31,23 @@ export class DataService {
         }
     }
 
-    public loadPage(): Observable<ParseResult<Page>> {
+    public loadPage(): Observable<string> {
         return new Observable((observer) => {
             let urlParseResult = this.parserService.tryParseUrlParam(window.location.href);
             if (typeof urlParseResult == "string") {
-                observer.next(new ParseResult<Page>("error", null, [urlParseResult]));
+                observer.next(urlParseResult);
             } else {
-                this.parserService.tryParsePage(urlParseResult).subscribe(parseResult => {
-                    if (parseResult.status == "error") {
+                validatePageAsync(urlParseResult, this.hashService.get.bind(this.hashService)).subscribe(err => {
+                    if (err) {
                         this.statsSubject.next(null);
-                        observer.next(parseResult);
                     } else {
-                        this.page = parseResult.result;
+                        this.page = urlParseResult as Page;
                         this.page.stats.forEach(z => {
                             z.calc = new Calculation(z.data);
                         })
                         this.statsSubject.next(this.page.stats);
-                        observer.next(parseResult);
                     }
+                    observer.next(err);
                 })
             }
         });

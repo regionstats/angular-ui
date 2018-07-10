@@ -156,13 +156,13 @@ export class TableComponent {
         this.tableRowMap = {};
         this.stats.forEach(stat => {
             stat.data.forEach(data => {
-                var tableRow = this.tableRowMap[data.region];
+                var tableRow = this.tableRowMap[data.r];
                 if (!tableRow) {
-                    tableRow = new TableRow(data.region);
-                    this.tableRowMap[data.region] = tableRow;
+                    tableRow = new TableRow(data.r);
+                    this.tableRowMap[data.r] = tableRow;
                     this.tableRowList.push(tableRow);
                 }
-                tableRow.values.push(data.value);
+                tableRow.values.push(data.v);
             })
         });
     }

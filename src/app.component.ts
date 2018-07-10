@@ -18,8 +18,8 @@ export class AppComponent {
     }
 
     ngOnInit() {
-        this.dataService.loadPage().subscribe((result) => {
-            if (typeof result == "string") {
+        this.dataService.loadPage().subscribe((err) => {
+            if (err) {
                 this.currentView = "converter"
                 this.noData = true;
             } else {

@@ -49,12 +49,12 @@ export class MapComponent {
                 this.stat = stats[indexes[0]];
                 if (this.stat) {
                     let calc = this.stat.calc;
-                    let range = calc.max.value - calc.min.value;
+                    let range = calc.max.v - calc.min.v;
                     let zScores = {}
                     let colors = {}
                     for (var key in this.stat.data) {
-                        zScores[key.toLowerCase()] = (this.stat.data[key].value - calc.mean) / calc.sd;
-                        let ratio = (this.stat.data[key].value - calc.min.value) / range
+                        zScores[key.toLowerCase()] = (this.stat.data[key].v - calc.mean) / calc.sd;
+                        let ratio = (this.stat.data[key].v - calc.min.v) / range
                         colors[this.getRegionId(this.stat.data[key])] = this.getColor(ratio);
                     }
                     this.setColors(colors);
@@ -77,10 +77,10 @@ export class MapComponent {
     }
 
     private getRegionId(data: Data): string {
-        if (data.parent) {
-            return data.region.replace(/ /g, "-").toLowerCase() + "," + data.parent.replace(/ /g, "-").toLowerCase();
+        if (data.i) {
+            return data.r.replace(/ /g, "-").toLowerCase() + "," + data.i.replace(/ /g, "-").toLowerCase();
         }
-        return data.region.replace(/ /g, "-").toLowerCase()
+        return data.r.replace(/ /g, "-").toLowerCase()
     }
 
     private load() {
