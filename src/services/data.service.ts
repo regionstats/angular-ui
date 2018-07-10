@@ -1,12 +1,10 @@
 
 import { Page } from '../models/page';
 import { Stat } from '../models/stat';
-import { Observable } from 'rxjs/Observable';
+import { Observable ,  ReplaySubject ,  BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
 import { ParserService, ParseResult } from './parser.service';
 import { Calculation } from '../models/calculation';
-import { BehaviorSubject } from 'rxjs';
 
 
 @Injectable()

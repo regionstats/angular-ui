@@ -1,16 +1,13 @@
+
+import {of as observableOf, forkJoin as observableForkJoin,  Observable ,  ReplaySubject } from 'rxjs';
+
+import {map, switchMap} from 'rxjs/operators';
 import { Page } from '../models/page';
 import { Stat } from '../models/stat';
 import { Data } from '../models/data';
 import { Source } from '../models/source';
 import * as Pako from 'pako';
-import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/map';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { HashService, HashError } from './hash.service';
 @Injectable()
 export class ParserService {
@@ -81,20 +78,20 @@ export class ParserService {
         let page = new Page();
         let stats = obj.s || obj.stat || obj.stats
         let statsCallback = (input) => {
-            return this.optionalHashWrapper(input).switchMap(result => {
+            return this.optionalHashWrapper(input).pipe(switchMap(result => {
                 if (result instanceof HashError) {
-                    return Observable.of(new ParseResult<Stat>("error", null, [`failed to load stat from IPFS using hash ${result.hash}`]));
+                    return observableOf(new ParseResult<Stat>("error", null, [`failed to load stat from IPFS using hash ${result.hash}`]));
                 }
                 if (result && typeof result == "object") {
                     return this.tryParseStat(result);
                 } else {
-                    return Observable.of(new ParseResult<Stat>("error", null, ["stat is not an object"]));
+                    return observableOf(new ParseResult<Stat>("error", null, ["stat is not an object"]));
                 }
-            });
+            }));
         }
-        let statsObservable: Observable<ParseResult<Stat>[]> = this.optionalHashWrapper(stats)
-            .switchMap(input => this.optionalArrayWrapper(input, statsCallback));
-        return statsObservable.map(parseResults => {
+        let statsObservable: Observable<ParseResult<Stat>[]> = this.optionalHashWrapper(stats).pipe(
+            switchMap(input => this.optionalArrayWrapper(input, statsCallback)));
+        return statsObservable.pipe(map(parseResults => {
             //TODO validation
             let errorMessages = [];
             parseResults.forEach(parseResult => {
@@ -111,13 +108,13 @@ export class ParserService {
                 return new ParseResult<Page>("warn", page, errorMessages);
             }
             return new ParseResult<Page>("success", page);
-        });
+        }));
     }
     private optionalArrayWrapper(input: any, callback: (input) => Observable<any>): Observable<any[]> {
         if (Array.isArray(input)) {
-            return Observable.forkJoin(input.map(z => callback(z)));
+            return observableForkJoin(input.map(z => callback(z)));
         } else {
-            return Observable.forkJoin([callback(input)]);
+            return observableForkJoin([callback(input)]);
         }
     }
 
@@ -125,7 +122,7 @@ export class ParserService {
         if (typeof input == "string" && /^[0-9a-zA-Z]{46}/.test(input)) {
             return this.hashService.get(input);
         } else {
-            return Observable.of(input);
+            return observableOf(input);
         }
     }
 
@@ -135,22 +132,22 @@ export class ParserService {
         //TITLE
         let title = obj.t || obj.title;
         if (!title) {
-            return Observable.of(new ParseResult<Stat>("error", null, ["title is required"]))
+            return observableOf(new ParseResult<Stat>("error", null, ["title is required"]))
         }
         if (typeof title != "string") {
-            return Observable.of(new ParseResult<Stat>("error", null, ["stat title must be a string"]))
+            return observableOf(new ParseResult<Stat>("error", null, ["stat title must be a string"]))
         }
         stat.title = title;
         //DATA
         let data = obj.d || obj.data;
         if (!data) {
-            return Observable.of(new ParseResult<Stat>("error", null, ["data is required"]));
+            return observableOf(new ParseResult<Stat>("error", null, ["data is required"]));
         }
         if (typeof data != "object" || !Array.isArray(data)) {
-            return Observable.of(new ParseResult<Stat>("error", null, ["data must be an array"]));
+            return observableOf(new ParseResult<Stat>("error", null, ["data must be an array"]));
         }
         if (data.length == 0) {
-            return Observable.of(new ParseResult<Stat>("error", null, ["data is an empty array"]))
+            return observableOf(new ParseResult<Stat>("error", null, ["data is an empty array"]))
         }
         let dataArray: Data[] = [];
         let errorMessages: string[] = [];
@@ -163,13 +160,13 @@ export class ParserService {
             }
         });
         if (!dataArray.length) {
-            return Observable.of(new ParseResult<Stat>("error", null, this.shrinkErrorMessages(errorMessages)));
+            return observableOf(new ParseResult<Stat>("error", null, this.shrinkErrorMessages(errorMessages)));
         }
         stat.data = dataArray;
         //REGION NAME
         let regionName = obj.rn || obj.regionname;
         if (typeof regionName != "string") {
-            return Observable.of(new ParseResult<Stat>("error", null, ["region name must be a string"]))
+            return observableOf(new ParseResult<Stat>("error", null, ["region name must be a string"]))
         }
         stat.regionName = regionName;
         //REGION TYPE
@@ -205,9 +202,9 @@ export class ParserService {
             stat.source = new Source();
         }
         if (errorMessages.length) {
-            return Observable.of(new ParseResult<Stat>("warn", stat, errorMessages));
+            return observableOf(new ParseResult<Stat>("warn", stat, errorMessages));
         }
-        return Observable.of(new ParseResult<Stat>("success", stat));
+        return observableOf(new ParseResult<Stat>("success", stat));
     }
     //todo: add type
     private tryParseData(obj: any): ParseResult<Data> {

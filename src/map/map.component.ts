@@ -1,3 +1,5 @@
+
+import {tap, combineLatest} from 'rxjs/operators';
 import { Component, Input, SimpleChange, SimpleChanges } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
@@ -5,11 +7,10 @@ import { ElementRef } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { Stat } from '../models/stat';
 import { Color } from '../models/color';
-import { AsyncSubject } from 'rxjs';
+import { AsyncSubject ,  Observable } from 'rxjs';
 import { ViewBox } from '../models/view-box';
-import { Observable } from 'rxjs/Observable';
 import { MapHelpers } from './map-helpers'
-import { take } from 'rxjs/operator/take';
+
 import { Task, TaskAttribute, AnimateService } from '../services/animate.service';
 import { Data } from '../models/data';
 
@@ -42,7 +43,7 @@ export class MapComponent {
 
     ngOnInit() {
         this.load().subscribe(() => {
-            this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
+            this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
                 let stats = arr[0];
                 let indexes = arr[1];
                 this.stat = stats[indexes[0]];
@@ -85,7 +86,7 @@ export class MapComponent {
     private load() {
         //var url = "assets/Counties.svg";
         var url = "assets/US.svg"
-        return MapHelpers.loadUnsafeSVG(url).do(unsafeSVG => {
+        return MapHelpers.loadUnsafeSVG(url).pipe(tap(unsafeSVG => {
             let viewBox = new ViewBox(unsafeSVG);
             this.svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
@@ -100,7 +101,7 @@ export class MapComponent {
             this.svgElement.setAttribute("viewBox", viewBox.toString());
             this.svgContainer.nativeElement.appendChild(this.svgElement);
             this.setHeight(viewBox.height() / viewBox.width());
-        })
+        }))
     }
 
     // height/width

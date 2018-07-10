@@ -7,7 +7,7 @@ import { Source } from '../models/source';
 import { Data } from '../models/data';
 import readXlsxFile from 'read-excel-file';
 import { BlockRenderComponent } from '../common/block-render.component';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'converter-component',

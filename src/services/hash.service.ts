@@ -1,8 +1,10 @@
+
+import {of as observableOf,  Observable ,  AsyncSubject } from 'rxjs';
+
+import {timeout} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { AsyncSubject } from 'rxjs/AsyncSubject';
-import 'rxjs/add/operator/timeout';
+
 
 @Injectable()
 export class HashService {
@@ -14,14 +16,14 @@ export class HashService {
 
     get(hash: string): Observable<any> {
         if (this.hashValues[hash]) {
-            return Observable.of(this.hashValues[hash])
+            return observableOf(this.hashValues[hash])
         }
         if (this.activeRequests[hash]) {
             return this.activeRequests[hash].asObservable();
         }
         let subject = new AsyncSubject<any>();
         this.activeRequests[hash] = subject;
-        this.http.get("https://gateway.ipfs.io/ipfs/" + hash).timeout(10000).subscribe(result => {
+        this.http.get("https://gateway.ipfs.io/ipfs/" + hash).pipe(timeout(10000)).subscribe(result => {
             this.hashValues[hash] = result; 
             subject.next(this.hashValues[hash]);
             subject.complete();

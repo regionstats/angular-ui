@@ -1,3 +1,5 @@
+
+import {combineLatest} from 'rxjs/operators';
 import { Component, Input, SimpleChange, SimpleChanges } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
@@ -67,7 +69,7 @@ export class ScatterplotComponent {
         this.svgElement.setAttribute("overflow", "hidden");
         this.svgElement.setAttribute("viewBox", "0 0 10000 10000");
         this.svgContainer.nativeElement.appendChild(this.svgElement);
-        this.dateService.getStats().combineLatest(this.dateService.getSelectedIndexes()).subscribe(arr => {
+        this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
             let stats = arr[0];
             let indexes = arr[1];
             if (!stats || stats.length < 2) {
