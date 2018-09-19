@@ -13,6 +13,7 @@ import { ScatterplotComponent } from './scatterplot/scatterplot.component';
 import { AnimateService } from './services/animate.service';
 import { HashService } from './services/hash.service';
 import { BlockRenderComponent } from './common/block-render.component';
+import { StatFormComponent } from './converter/stat-form.component';
 
 @NgModule({
     declarations: [
@@ -22,7 +23,8 @@ import { BlockRenderComponent } from './common/block-render.component';
         TableComponent,
         ConverterComponent,
         ScatterplotComponent,
-        BlockRenderComponent
+        BlockRenderComponent,
+        StatFormComponent
     ],
     imports: [
         BrowserModule,

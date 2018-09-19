@@ -4,7 +4,8 @@ import {of as observableOf,  Observable ,  AsyncSubject } from 'rxjs';
 import {timeout} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-
+import { config } from '../app.config';
+import { AddStatRequest } from '@regionstats/models';
 
 @Injectable()
 export class HashService {
@@ -35,6 +36,14 @@ export class HashService {
             delete this.activeRequests[hash];
         })
         return subject.asObservable();
+    }
+
+    addStat(request: AddStatRequest){
+        this.http.post(config.api + "/stat", request).subscribe(result => {
+            console.log("result", result);
+        }, err => {
+            console.log("err", err);
+        })
     }
 }
 export class HashError{
