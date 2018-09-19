@@ -15,6 +15,7 @@ import { HashService } from './services/hash.service';
 import { BlockRenderComponent } from './common/block-render.component';
 import { StatFormComponent } from './converter/stat-form.component';
 import { DataTabComponent } from './converter/data-tab.component';
+import { APIService } from './services/api.service';
 
 @NgModule({
     declarations: [
@@ -37,7 +38,8 @@ import { DataTabComponent } from './converter/data-tab.component';
         DataService,
         ParserService,
         AnimateService,
-        HashService
+        HashService,
+        APIService
     ],
     bootstrap: [AppComponent]
 })

@@ -52,7 +52,7 @@
             <label for="source-title-input" class="col-form-label">Source Title</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="source-title-input" [(ngModel)]="selectedStat.source.title">
+            <input class="form-control" id="source-title-input" [(ngModel)]="source.title" (ngModelChange)="sourceChanged()">
         </div>
     </div>
     <div class="row mt-2">
@@ -60,7 +60,7 @@
             <label for="source-publisher-input" class="col-form-label">Publisher</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="source-publisher-input" [(ngModel)]="selectedStat.source.publisher">
+            <input class="form-control" id="source-publisher-input" [(ngModel)]="source.publisher" (ngModelChange)="sourceChanged()">
         </div>
     </div>
     <div class="row mt-2">
@@ -68,7 +68,7 @@
             <label for="source-year-input" class="col-form-label">Source Year</label>
         </div>
         <div class="col-9">
-            <input type="number" max="9999" class="form-control" id="source-year-input" [(ngModel)]="selectedStat.source.year">
+            <input type="number" max="9999" class="form-control" id="source-year-input" [(ngModel)]="source.year" (ngModelChange)="sourceChanged()">
         </div>
     </div>
     <div class="row mt-2">
@@ -76,7 +76,7 @@
             <label for="source-url-input" class="col-form-label">Source URL</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="source-url-input" [(ngModel)]="selectedStat.source.url">
+            <input class="form-control" id="source-url-input" [(ngModel)]="source.url" (ngModelChange)="sourceChanged()">
         </div>
     </div>
 </div>
@@ -84,8 +84,44 @@
     <data-tab-component [(data)]="selectedStat.data" [regionType]="selectedStat.regionType" [regionIntermediary]="selectedStat.regionIntermediary"></data-tab-component>
 </div>
 <div *ngIf="tab == 'ipfs'">
-    <p>IPFS support in development</p>
-    <button class="btn btn-outline-primary" (click)="addStatToIPFS()">
-        Add to IPFS
-    </button>
+    <div class="row mt-2">
+        <div class="col-3">
+            <label for="ipfs-name-input" class="col-form-label">Name</label>
+        </div>
+        <div class="col-9">
+            <input class="form-control" id="ipfs-name-input" [(ngModel)]="ipfsName">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-3">
+            <label for="ipfs-tripcode-input" class="col-form-label">Tripcode Key</label>
+        </div>
+        <div class="col-9">
+            <input class="form-control" id="ipfs-tripcode-input" [(ngModel)]="ipfsTripcode">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-3">
+            <label for="ipfs-category-input" class="col-form-label">Category</label>
+        </div>
+        <div class="col-9">
+            <select class="form-control" [(ngModel)]="ipfsCategory">
+                <option *ngFor="let category of ipfsCategories" [ngValue]="category">{{category}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            <div class="form-check ml-1">
+                <input type="checkbox" class="form-check-input" id="remember-publish-info">
+                <label class="form-check-label" for="remember-publish-info">Remember Publish Info</label>
+            </div>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-success" (click)="publishStat()">Publish Stat</button>
+        </div>
+    </div>
+    <div class="invalid-feedback" [style.display]="publishError ? 'block' : 'none'">
+        {{publishError}}
+    </div>
 </div>
