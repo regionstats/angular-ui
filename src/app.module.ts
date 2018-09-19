@@ -14,6 +14,7 @@ import { AnimateService } from './services/animate.service';
 import { HashService } from './services/hash.service';
 import { BlockRenderComponent } from './common/block-render.component';
 import { StatFormComponent } from './converter/stat-form.component';
+import { DataTabComponent } from './converter/data-tab.component';
 
 @NgModule({
     declarations: [
@@ -24,7 +25,8 @@ import { StatFormComponent } from './converter/stat-form.component';
         ConverterComponent,
         ScatterplotComponent,
         BlockRenderComponent,
-        StatFormComponent
+        StatFormComponent,
+        DataTabComponent
     ],
     imports: [
         BrowserModule,

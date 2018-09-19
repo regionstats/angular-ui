@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <select class="form-control" [(ngModel)]="selectedStat">
-                    <option *ngFor="let stat of stats" [ngValue]="stat">{{stat.title}}</option>
+                    <option *ngFor="let stat of stats; let i = index;" [ngValue]="stat">{{i+1}}. {{stat.title}}</option>
                 </select>
                 <div class="invalid-feedback" [style.display]="statMessage ? 'block' : 'none'">
                     {{statMessage}}
