@@ -12,13 +12,13 @@
         <a class="nav-link" [class.active]="tab == 'ipfs'" (click)="setTab('ipfs')" tabindex>IPFS</a>
     </li>
 </ul>
-<div *ngIf="tab == 'main'">
+<div *ngIf="tab == 'main' && stat">
     <div class="row mt-2">
         <div class="col-3">
             <label for="stat-title-input" class="col-form-label">Title</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="stat-title-input" [(ngModel)]="selectedStat.title">
+            <input class="form-control" id="stat-title-input" [(ngModel)]="stat.title">
         </div>
     </div>
     <div class="row mt-2">
@@ -26,7 +26,7 @@
             <label for="region-name-input" class="col-form-label">Region Name</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="region-name-input" [(ngModel)]="selectedStat.regionName">
+            <input class="form-control" id="region-name-input" [(ngModel)]="stat.regionName">
         </div>
     </div>
     <div class="row mt-2">
@@ -34,7 +34,7 @@
             <label for="region-type-input" class="col-form-label">Region Type</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="region-type-input" [(ngModel)]="selectedStat.regionType">
+            <input class="form-control" id="region-type-input" [(ngModel)]="stat.regionType">
         </div>
     </div>
     <div class="row mt-2">
@@ -42,11 +42,11 @@
             <label for="region-intermediary-input" class="col-form-label">Region Intermediary</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="region-intermediary-input" [(ngModel)]="selectedStat.regionIntermediary">
+            <input class="form-control" id="region-intermediary-input" [(ngModel)]="stat.regionIntermediary">
         </div>
     </div>
 </div>
-<div *ngIf="tab == 'source'">
+<div *ngIf="tab == 'source' && stat">
     <div class="row mt-2">
         <div class="col-3">
             <label for="source-title-input" class="col-form-label">Source Title</label>
@@ -68,7 +68,8 @@
             <label for="source-year-input" class="col-form-label">Source Year</label>
         </div>
         <div class="col-9">
-            <input type="number" max="9999" class="form-control" id="source-year-input" [(ngModel)]="source.year" (ngModelChange)="sourceChanged()">
+            <input type="number" max="9999" class="form-control" id="source-year-input" [(ngModel)]="source.year"
+                (ngModelChange)="sourceChanged()">
         </div>
     </div>
     <div class="row mt-2">
@@ -80,48 +81,53 @@
         </div>
     </div>
 </div>
-<div *ngIf="tab == 'data'">
-    <data-tab-component [(data)]="selectedStat.data" [regionType]="selectedStat.regionType" [regionIntermediary]="selectedStat.regionIntermediary"></data-tab-component>
+<div *ngIf="tab == 'data' && stat">
+    <data-tab-component [(data)]="stat.data" [regionType]="stat.regionType" [regionIntermediary]="stat.regionIntermediary"></data-tab-component>
 </div>
 <div *ngIf="tab == 'ipfs'">
-    <div class="row mt-2">
-        <div class="col-3">
-            <label for="ipfs-name-input" class="col-form-label">Name</label>
-        </div>
-        <div class="col-9">
-            <input class="form-control" id="ipfs-name-input" [(ngModel)]="ipfsName">
-        </div>
+    <div *ngIf="hash">
+        {{hash}}
     </div>
-    <div class="row mt-2">
-        <div class="col-3">
-            <label for="ipfs-tripcode-input" class="col-form-label">Tripcode Key</label>
-        </div>
-        <div class="col-9">
-            <input class="form-control" id="ipfs-tripcode-input" [(ngModel)]="ipfsTripcode">
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col-3">
-            <label for="ipfs-category-input" class="col-form-label">Category</label>
-        </div>
-        <div class="col-9">
-            <select class="form-control" [(ngModel)]="ipfsCategory">
-                <option *ngFor="let category of ipfsCategories" [ngValue]="category">{{category}}</option>
-            </select>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col">
-            <div class="form-check ml-1">
-                <input type="checkbox" class="form-check-input" id="remember-publish-info">
-                <label class="form-check-label" for="remember-publish-info">Remember Publish Info</label>
+    <div *ngIf="!hash">
+        <div class="row mt-2">
+            <div class="col-3">
+                <label for="ipfs-name-input" class="col-form-label">Name</label>
+            </div>
+            <div class="col-9">
+                <input class="form-control" id="ipfs-name-input" [(ngModel)]="ipfsName">
             </div>
         </div>
-        <div class="col-auto">
-            <button class="btn btn-success" (click)="publishStat()">Publish Stat</button>
+        <div class="row mt-2">
+            <div class="col-3">
+                <label for="ipfs-tripcode-input" class="col-form-label">Tripcode Key</label>
+            </div>
+            <div class="col-9">
+                <input class="form-control" id="ipfs-tripcode-input" [(ngModel)]="ipfsTripcode">
+            </div>
         </div>
-    </div>
-    <div class="invalid-feedback" [style.display]="publishError ? 'block' : 'none'">
-        {{publishError}}
+        <div class="row mt-2">
+            <div class="col-3">
+                <label for="ipfs-category-input" class="col-form-label">Category</label>
+            </div>
+            <div class="col-9">
+                <select class="form-control" [(ngModel)]="ipfsCategory">
+                    <option *ngFor="let category of ipfsCategories" [ngValue]="category">{{category}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col">
+                <div class="form-check ml-1">
+                    <input type="checkbox" class="form-check-input" id="remember-publish-info">
+                    <label class="form-check-label" for="remember-publish-info">Remember Publish Info</label>
+                </div>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-success" (click)="publishStat()">Publish Stat</button>
+            </div>
+        </div>
+        <div class="invalid-feedback" [style.display]="publishError ? 'block' : 'none'">
+            {{publishError}}
+        </div>
     </div>
 </div>

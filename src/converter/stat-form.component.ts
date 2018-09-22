@@ -9,9 +9,12 @@ import { validateStatAsync } from '@regionstats/validator';
     templateUrl: './stat-form.component.html',
 })
 export class StatFormComponent {
-    @Input() selectedStat: Stat
+    @Input() selectedStat: Stat | string;
     @Input() tab: string = "main";
     @Output() tabChange = new EventEmitter<string>();
+
+    stat: Stat;
+    hash: string;
 
     source: Source;
 
@@ -19,7 +22,7 @@ export class StatFormComponent {
     ipfsTripcode: string;
     ipfsCategory: string;
 
-    ipfsCategories = ["Census", "Crime", "Education", "Economics", "Opinion", "Voting", "Other"]
+    ipfsCategories = ["Demographics", "Crime", "Education", "Economics", "Opinion", "Voting", "Other"]
     publishError: string;
 
     constructor(private apiService: APIService, private hashService: HashService) {
@@ -31,9 +34,22 @@ export class StatFormComponent {
 
     ngOnChanges(changes: SimpleChanges){
         if (changes.selectedStat){
-            this.source = this.selectedStat.source ? this.selectedStat.source : new Source({});
-            this.sourceChanged();
+            if (typeof this.selectedStat == "object"){
+                this.hash = null;
+                this.setStat(this.selectedStat);
+            } else {
+                this.hash = this.selectedStat;
+                this.hashService.get(this.selectedStat).subscribe(obj => {
+                    this.setStat(obj);
+                })
+            }
         }
+    }
+
+    private setStat(stat: Stat){
+        this.stat = stat;
+        this.source = stat.source ? stat.source : new Source({});
+        this.sourceChanged();
     }
 
     setTab(tab: string){
@@ -48,9 +64,9 @@ export class StatFormComponent {
         || this.isValidString(this.source.publisher)
         || this.isValidString(this.source.url)
         || this.source.year != null){
-            this.selectedStat.source = this.source;
+            this.stat.source = this.source;
         } else {
-            delete this.selectedStat.source;
+            delete this.stat.source;
         }
     }
 
@@ -59,10 +75,9 @@ export class StatFormComponent {
     }
 
     publishStat(){
-        console.log(this.ipfsTripcode)
         this.publishError = "";
         if (this.isValidString(this.ipfsTripcode) && this.ipfsTripcode.trim().length < 20){
-            this.publishError = "Tripcode Key must be empty or longer than 20 characters. Unlike traditional passwords, the hash of the tripcode key is unsalted AND publicized."
+            this.publishError = "Tripcode Key must be empty or longer than 20 characters"
             return;
         }
         validateStatAsync(this.selectedStat, this.hashService.get.bind(this.hashService)).subscribe(error => {
@@ -78,8 +93,6 @@ export class StatFormComponent {
             }
             this.apiService.addStat(request).subscribe(result => {
                 console.log("result", result);
-            }, err => {
-                this.publishError = error;
             })
         })
     }

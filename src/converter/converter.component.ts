@@ -8,8 +8,9 @@ import { Source } from '../models/source';
 import { Data } from '../models/data';
 import readXlsxFile from 'read-excel-file';
 import { BlockRenderComponent } from '../common/block-render.component';
-import { Observable } from 'rxjs';
-import { validatePageAsync } from '@regionstats/validator';
+import { Observable, forkJoin } from 'rxjs';
+import { validatePageAsync, validateStatAsync } from '@regionstats/validator';
+import { map } from 'rxjs/operators';
 
 @Component({
     selector: 'converter-component',
@@ -65,7 +66,7 @@ export class ConverterComponent {
         }
         let jsonStr = JSON.stringify(obj);
         this.jsonLength = jsonStr.length;
-        let deflatedStr = Pako.deflate(jsonStr, { to: 'string',  dictionary: this.dictionary});
+        let deflatedStr = Pako.deflate(jsonStr, { to: 'string', dictionary: this.dictionary });
         let base64 = btoa(deflatedStr);
         let urlParam = encodeURIComponent(base64);
         this.urlLength = urlParam.length;
@@ -99,48 +100,22 @@ export class ConverterComponent {
 
     formToJson() {
         this.statMessage = "";
-        this.stats.forEach((stat, i) => {
-            if (!stat.title) {
-                this.selectedStat = stat;
-                this.statMessage = "Stat " + (i + 1) + " has no title";
-                this.tab = "main";
-                return false;
+        validatePageAsync({ stats: this.stats }, this.hashService.get.bind(this.hashService)).subscribe(err => {
+            if (err){
+                this.statMessage = err;
+                var arr = /(\d+):/.exec(err);
+                if (arr[1]){
+                    var index = parseInt(arr[1]) - 1;
+                    if (!isNaN(index) && index < this.stats.length){
+                        this.selectedStat = this.stats[index];
+                    }
+                }
+            } else {
+                this.jsonMessage = "";
+                this.jsonLength = JSON.stringify({ stats: this.stats }).length;
+                this.json = JSON.stringify({ stats: this.stats }, null, 5);
             }
         });
-        if (this.statMessage) {
-            return;
-        }
-        this.stats.forEach((stat, i) => {
-            if (!stat.data || !stat.data.length) {
-                this.selectedStat = stat;
-                this.statMessage = "Stat " + (i + 1) + " has no data";
-                this.tab = "data";
-                return false;
-            }
-        });
-        if (this.statMessage) {
-            return;
-        }
-        this.stats.forEach((stat, i) => {
-            stat.data.forEach((data, j) => {
-                if (!data.r) {
-                    this.statMessage = "Stat " + (i + 1) + " row " + (j + 1) + " has no " + stat.regionType;
-                }
-                if (stat.regionIntermediary && !data.i) {
-                    this.statMessage = "Stat " + (i + 1) + " row " + (j + 1) + " has no " +  stat.regionIntermediary;
-                }
-                if (this.statMessage) {
-                    this.selectedStat = stat;
-                    this.tab = "data";
-                    return false;
-                }
-            })
-            return this.statMessage;
-        });
-
-        this.jsonMessage = "";
-        this.jsonLength = JSON.stringify({stats: this.stats}).length;
-        this.json = JSON.stringify({stats: this.stats}, null, 5);
     }
 
     addStat() {

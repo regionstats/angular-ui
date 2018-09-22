@@ -4,7 +4,7 @@
             <p style="top: 0.4rem;  left: 0; right: 0; position: absolute; pointer-events: none;" class="text-center">
                 Paste Spreadsheet Columns Here
             </p>
-            <textarea class="form-control" [class.is-invalid]="tsvMessage" style="resize: none;" rows="1.5"
+            <textarea class="form-control" style="resize: none;" rows="1.5"
                 [ngModel]="tsv" (ngModelChange)="tsvChanged($event)" (paste)="spreadsheetPaste($event)"></textarea>
         </div>
         <div class="text-center">

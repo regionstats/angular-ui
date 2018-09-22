@@ -13,6 +13,6 @@ export class APIService {
     }
 
     addStat(request: AddStatRequest){
-        return this.http.post(config.api + "/stat", request);
+        return this.http.post(config.api + "/stat", request, {responseType: 'text'});
     }
 }

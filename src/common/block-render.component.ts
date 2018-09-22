@@ -24,6 +24,7 @@ export class BlockRenderComponent<T>{
     private ScrollFunctionRef: (e) => {};
     private scrollContainer: HTMLElement;
     private prevItemsLength: number;
+    private isDestroyed: boolean = false;
 
     constructor(
         private elementRef: ElementRef,
@@ -45,6 +46,10 @@ export class BlockRenderComponent<T>{
         this.updateBlocksVisibility();
         this.initialized = true;
     }
+    ngOnDestroy(){
+        this.isDestroyed = true;
+    }
+
 
     ngDoCheck() {
         this.blockHeight = this.itemsPerBlock * this.itemHeight;
@@ -122,8 +127,10 @@ export class BlockRenderComponent<T>{
                 clearTimeout(this.detectChangeTimeout)
             }
             this.detectChangeTimeout = setTimeout(() => {
-                this.changeDetector.detectChanges();
-                this.detectChangeTimeout = null;
+                if (!this.isDestroyed){
+                    this.changeDetector.detectChanges();
+                    this.detectChangeTimeout = null;
+                }
             }, 50)
         }
     }
