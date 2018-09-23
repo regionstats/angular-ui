@@ -2,7 +2,7 @@ import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef } 
 
 import { HttpClient } from '@angular/common/http'
 import { DataService } from '../services/data.service';
-import { Stat } from '../models/stat';
+import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { TableRow } from './table-row';
@@ -34,6 +34,7 @@ export class TableComponent {
     private scrollContainer: HTMLElement;
     private selectedIndexes: number[] = [0, 1];
     private updateLineTimeout: any;
+    private destroyed: boolean = false;
 
     constructor(private dataService: DataService) {
     }
@@ -47,11 +48,14 @@ export class TableComponent {
             this.selectedIndexes = indexes;
             this.updateLines();
         });
-        this.dataService.getStats().subscribe(stats => {
-            this.stats = stats;
-            this.rowWidth = (stats.length * 120) + "px";
+        this.dataService.getStats().subscribe(statContainers => {
+            this.stats = statContainers.map(z => z.stat);
+            this.rowWidth = (this.stats.length * 120) + "px";
             this.updateTableRows();
             setTimeout(() => {
+                if (this.destroyed){
+                    return;
+                }
                 let headers = document.getElementsByClassName("table-header");
                 for (let i = 0; i < headers.length; i++){
                     if (this.headerScrollFunctionRefs[i]) {
@@ -81,6 +85,7 @@ export class TableComponent {
             }
         }
         this.scrollContainer.removeEventListener("scroll", this.verticalScrollFunctionRef);
+        this.destroyed = true;
     }
 
     headerClicked(event: MouseEvent, index: number) {

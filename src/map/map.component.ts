@@ -5,7 +5,7 @@ import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
 import { DataService } from '../services/data.service';
-import { Stat } from '../models/stat';
+import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
 import { AsyncSubject ,  Observable } from 'rxjs';
 import { ViewBox } from '../models/view-box';
@@ -46,9 +46,10 @@ export class MapComponent {
             this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
                 let stats = arr[0];
                 let indexes = arr[1];
-                this.stat = stats[indexes[0]];
+                let statContainer = stats[indexes[0]];
+                this.stat = statContainer.stat;
                 if (this.stat) {
-                    let calc = this.stat.calc;
+                    let calc = statContainer.calc;
                     let range = calc.max.v - calc.min.v;
                     let zScores = {}
                     let colors = {}
@@ -65,7 +66,7 @@ export class MapComponent {
 
 
         this.dateService.getStats().subscribe(stats => {
-            this.stat = stats[0];
+            this.stat = stats[0].stat;
             if (this.stat) {
                 this.load();
             }

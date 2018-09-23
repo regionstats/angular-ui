@@ -1,5 +1,5 @@
-import { Stat } from "./stat";
-
+import { StatContainer } from "./stat-container";
+ 
 export class Page {
-    stats: Stat[];
+    stats: StatContainer[];
 }

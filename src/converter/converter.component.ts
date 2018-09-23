@@ -2,8 +2,7 @@ import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef } 
 import * as Pako from 'pako';
 import { ParserService } from '../services/parser.service'
 import { HashService } from '../services/hash.service'
-import { Stat } from '../models/stat';
-import { Page } from '../models/page';
+import { Stat } from '@regionstats/models';
 import { Source } from '../models/source';
 import { Data } from '../models/data';
 import readXlsxFile from 'read-excel-file';
@@ -11,6 +10,7 @@ import { BlockRenderComponent } from '../common/block-render.component';
 import { Observable, forkJoin } from 'rxjs';
 import { validatePageAsync, validateStatAsync } from '@regionstats/validator';
 import { map } from 'rxjs/operators';
+import { StatContainer } from '../models/stat-container';
 
 @Component({
     selector: 'converter-component',
@@ -27,8 +27,8 @@ export class ConverterComponent {
     public jsonLength: number;
     public tab: string = "main";
 
-    public stats: Stat[] = [];
-    public selectedStat: Stat;
+    public statContainers: StatContainer[] = [];
+    public selectedStatContainer: StatContainer;
     public statMessage: string;
 
     constructor(private parserService: ParserService, private hashService: HashService) {
@@ -36,12 +36,13 @@ export class ConverterComponent {
 
     ngOnInit() {
         this.url = window.location.href;
-        this.selectedStat = new Stat();
-        this.selectedStat.title = "Title of Your Stat";
-        this.selectedStat.regionName = "United States";
-        this.selectedStat.regionType = "State"
-        this.selectedStat.source = new Source();
-        this.stats.push(this.selectedStat);
+        let stat = new Stat({});
+        stat.title = "Title of Your Stat";
+        stat.regionName = "United States";
+        stat.regionType = "State"
+        stat.source = new Source();
+        this.selectedStatContainer = {stat: stat};
+        this.statContainers.push(this.selectedStatContainer)
     }
     convertToJson() {
         var urlParseResult = this.parserService.tryParseUrlParam(this.url, this.dictionary);
@@ -86,46 +87,48 @@ export class ConverterComponent {
             this.jsonMessage = e.message;
             return;
         }
-        validatePageAsync(obj, this.hashService.get.bind(this.hashService)).subscribe(err => {
-            if (err) {
-                this.jsonMessage = err;
+        this.parserService.tryParsePage(obj).subscribe(result => {
+            if (typeof result == "string") {
+                this.jsonMessage = result;
                 return;
             }
             this.jsonMessage = "";
             this.statMessage = "";
-            this.stats = (obj as Page).stats;
-            this.selectedStat = this.stats[0];
-        });
+            this.statContainers = result.stats;
+            this.selectedStatContainer = this.statContainers[0];
+        })
     }
 
     formToJson() {
         this.statMessage = "";
-        validatePageAsync({ stats: this.stats }, this.hashService.get.bind(this.hashService)).subscribe(err => {
+        let stats = this.statContainers.map(z => z.stat);
+        validatePageAsync({ stats: stats }, this.hashService.get.bind(this.hashService)).subscribe(err => {
             if (err){
                 this.statMessage = err;
                 var arr = /(\d+):/.exec(err);
                 if (arr[1]){
                     var index = parseInt(arr[1]) - 1;
-                    if (!isNaN(index) && index < this.stats.length){
-                        this.selectedStat = this.stats[index];
+                    if (!isNaN(index) && index < this.statContainers.length){
+                        this.selectedStatContainer = this.statContainers[index];
                     }
                 }
             } else {
                 this.jsonMessage = "";
-                this.jsonLength = JSON.stringify({ stats: this.stats }).length;
-                this.json = JSON.stringify({ stats: this.stats }, null, 5);
+                this.jsonLength = JSON.stringify({ stats: stats }).length;
+                this.json = JSON.stringify({ stats: stats }, null, 5);
             }
         });
     }
 
     addStat() {
-        this.selectedStat = new Stat();
-        this.selectedStat.title = "";
-        this.selectedStat.regionName = "United States";
-        this.selectedStat.regionType = "State"
-        this.selectedStat.source = new Source();
+        let stat = new Stat({});
+        stat.title = "";
+        stat.regionName = "United States";
+        stat.regionType = "State"
+        stat.source = new Source();
+        this.selectedStatContainer = {stat: stat};
+        this.statContainers.push(this.selectedStatContainer);
         this.tab = "main";
-        this.stats.push(this.selectedStat);
         setTimeout(() => {
             let el = document.getElementById("stat-title-input");
             if (el) {
@@ -135,11 +138,11 @@ export class ConverterComponent {
     }
 
     removeStat() {
-        let index = this.stats.indexOf(this.selectedStat);
-        this.stats.splice(index, 1);
-        if (!this.stats[index]) {
+        let index = this.statContainers.indexOf(this.selectedStatContainer);
+        this.statContainers.splice(index, 1);
+        if (!this.statContainers[index]) {
             index--;
         }
-        this.selectedStat = this.stats[index];
+        this.selectedStatContainer = this.statContainers[index];
     }
 }

@@ -74,17 +74,17 @@
                             <i class="fas fa-plus"></i>
                             Add New Stat
                         </button>
-                        <button class="btn btn-sm btn-outline-danger mb-1" [disabled]="stats.length < 2" (click)="removeStat()">Remove Current Stat</button>
+                        <button class="btn btn-sm btn-outline-danger mb-1" [disabled]="statContainers.length < 2" (click)="removeStat()">Remove Current Stat</button>
                     </div>
                 </div>
-                <select class="form-control" [(ngModel)]="selectedStat">
-                    <option *ngFor="let stat of stats; let i = index;" [ngValue]="stat">{{i+1}}. {{stat.title}}</option>
+                <select class="form-control" [(ngModel)]="selectedStatContainer">
+                    <option *ngFor="let statContainer of statContainers; let i = index;" [ngValue]="statContainer">{{i+1}}. {{statContainer.stat.title}}</option>
                 </select>
                 <div class="invalid-feedback" [style.display]="statMessage ? 'block' : 'none'">
                     {{statMessage}}
                 </div>
             </div>
-            <stat-form-component [selectedStat]="selectedStat" [(tab)]="tab"></stat-form-component>
+            <stat-form-component [selectedStatContainer]="selectedStatContainer" [(tab)]="tab"></stat-form-component>
         </div>
     </div>
 </div>

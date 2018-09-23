@@ -3,13 +3,14 @@ import { APIService } from '../services/api.service';
 import { HashService } from '../services/hash.service';
 import { Stat, AddStatRequest, Source } from '@regionstats/models';
 import { validateStatAsync } from '@regionstats/validator';
+import { StatContainer } from '../models/stat-container';
 
 @Component({
     selector: 'stat-form-component',
     templateUrl: './stat-form.component.html',
 })
 export class StatFormComponent {
-    @Input() selectedStat: Stat | string;
+    @Input() selectedStatContainer: StatContainer;
     @Input() tab: string = "main";
     @Output() tabChange = new EventEmitter<string>();
 
@@ -33,23 +34,12 @@ export class StatFormComponent {
     }
 
     ngOnChanges(changes: SimpleChanges){
-        if (changes.selectedStat){
-            if (typeof this.selectedStat == "object"){
-                this.hash = null;
-                this.setStat(this.selectedStat);
-            } else {
-                this.hash = this.selectedStat;
-                this.hashService.get(this.selectedStat).subscribe(obj => {
-                    this.setStat(obj);
-                })
-            }
+        if (changes.selectedStatContainer){
+            this.stat = this.selectedStatContainer.stat;
+            this.hash = this.selectedStatContainer.hash;
+            this.source = this.stat.source ? this.stat.source : new Source({});
+            this.sourceChanged();
         }
-    }
-
-    private setStat(stat: Stat){
-        this.stat = stat;
-        this.source = stat.source ? stat.source : new Source({});
-        this.sourceChanged();
     }
 
     setTab(tab: string){
@@ -80,7 +70,7 @@ export class StatFormComponent {
             this.publishError = "Tripcode Key must be empty or longer than 20 characters"
             return;
         }
-        validateStatAsync(this.selectedStat, this.hashService.get.bind(this.hashService)).subscribe(error => {
+        validateStatAsync(this.selectedStatContainer.stat, this.hashService.get.bind(this.hashService)).subscribe(error => {
             if (error){
                 this.publishError = "error with stat: " + error;
                 return;
@@ -89,7 +79,7 @@ export class StatFormComponent {
                 name: this.ipfsName,
                 tripcodeKey: this.ipfsTripcode,
                 category: this.ipfsCategory,
-                stat: this.selectedStat,
+                stat: this.selectedStatContainer.stat,
             }
             this.apiService.addStat(request).subscribe(result => {
                 console.log("result", result);

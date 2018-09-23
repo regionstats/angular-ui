@@ -6,7 +6,7 @@ import { ElementRef } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http'
 import { DataService } from '../services/data.service';
-import { Stat } from '../models/stat';
+import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { ViewBox } from '../models/view-box';
@@ -14,6 +14,7 @@ import { Data } from '../models/data';
 import { Dot } from './dot';
 import { AnimateService, Task, TaskAttribute } from '../services/animate.service';
 import { Attribute } from '@angular/compiler';
+import { Calculation } from '../models/calculation';
 
 @Component({
     selector: 'scatterplot-component',
@@ -27,6 +28,8 @@ export class ScatterplotComponent {
 
     public statX: Stat;
     public statY: Stat;
+    public calcX: Calculation;
+    public calcY: Calculation;
 
     private svgElement: SVGSVGElement;
     private sdMarkersGroup: SVGGElement;
@@ -75,8 +78,10 @@ export class ScatterplotComponent {
             if (!stats || stats.length < 2) {
                 return;
             }
-            this.statX = stats[indexes[0]];
-            this.statY = stats[indexes[1]];
+            this.statX = stats[indexes[0]].stat;
+            this.statY = stats[indexes[1]].stat;
+            this.calcX = stats[indexes[0]].calc;
+            this.calcY = stats[indexes[1]].calc;
             this.statsChanged();
         });
         this.setWidth();
@@ -288,7 +293,7 @@ export class ScatterplotComponent {
                 dot = new Dot(data.r);
                 dotMap[data.r] = dot;
             }
-            dot.x = (data.v - this.statX.calc.mean) / this.statX.calc.sd;
+            dot.x = (data.v - this.calcX.mean) / this.calcX.sd;
             dot.xValue = data.v
         });
         this.statY.data.forEach(data => {
@@ -297,7 +302,7 @@ export class ScatterplotComponent {
                 dot = new Dot(data.r);
                 dotMap[data.r] = dot;
             }
-            dot.y = (data.v - this.statY.calc.mean) / this.statY.calc.sd;
+            dot.y = (data.v - this.calcY.mean) / this.calcY.sd;
             dot.yValue = data.v
         });
         return dotMap;
@@ -425,7 +430,7 @@ export class ScatterplotComponent {
             xAvgText.setAttribute("id", "x-avg-text")
             xAvgText.setAttribute("fill", "#555")
         }
-        xAvgText.innerHTML = this.metricFormat(this.statY.calc.mean);
+        xAvgText.innerHTML = this.metricFormat(this.calcY.mean);
         this.axisGroup.appendChild(xAvgText);
         let yAvgText: any = document.getElementById("y-avg-text");
         if (!yAvgText){
@@ -436,7 +441,7 @@ export class ScatterplotComponent {
             yAvgText.setAttribute("id", "y-avg-text")
             yAvgText.setAttribute("fill", "#555")
         }
-        yAvgText.innerHTML = this.metricFormat(this.statX.calc.mean);
+        yAvgText.innerHTML = this.metricFormat(this.calcX.mean);
         this.axisGroup.appendChild(yAvgText);
     }
     public metricFormat(num: number): string {

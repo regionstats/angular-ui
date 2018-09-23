@@ -4,7 +4,6 @@ import { ElementRef } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http'
 import { DataService } from './services/data.service';
-import { Stat } from './models/stat';
 
 @Component({
     selector: 'app-root',
@@ -18,7 +17,7 @@ export class AppComponent {
     }
 
     ngOnInit() {
-        this.dataService.loadPage().subscribe((err) => {
+        this.dataService.init().subscribe((err) => {
             if (err) {
                 this.currentView = "converter"
                 this.noData = true;
