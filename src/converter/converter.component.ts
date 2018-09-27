@@ -8,7 +8,7 @@ import { Data } from '../models/data';
 import readXlsxFile from 'read-excel-file';
 import { BlockRenderComponent } from '../common/block-render.component';
 import { Observable, forkJoin } from 'rxjs';
-import { validatePageAsync, validateStatAsync } from '@regionstats/validator';
+import { validateStatArrayAsync } from '@regionstats/validator';
 import { map } from 'rxjs/operators';
 import { StatContainer } from '../models/stat-container';
 
@@ -94,15 +94,15 @@ export class ConverterComponent {
             }
             this.jsonMessage = "";
             this.statMessage = "";
-            this.statContainers = result.stats;
+            this.statContainers = result.statContainers;
             this.selectedStatContainer = this.statContainers[0];
         })
     }
 
     formToJson() {
         this.statMessage = "";
-        let stats = this.statContainers.map(z => z.stat);
-        validatePageAsync({ stats: stats }, this.hashService.get.bind(this.hashService)).subscribe(err => {
+        let stats = this.statContainers.map(z => z.hash ? z.hash : z.stat);
+        validateStatArrayAsync(stats, this.hashService.get.bind(this.hashService)).subscribe(err => {
             if (err){
                 this.statMessage = err;
                 var arr = /(\d+):/.exec(err);

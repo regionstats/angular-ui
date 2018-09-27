@@ -49,6 +49,11 @@ export class StatFormComponent {
         }
     }
 
+    setHash(hash: string){
+        this.hash = hash;
+        this.selectedStatContainer.hash = hash;
+    }
+
     sourceChanged(){
         if (this.isValidString(this.source.title)
         || this.isValidString(this.source.publisher)
@@ -82,9 +87,15 @@ export class StatFormComponent {
                 stat: this.selectedStatContainer.stat,
             }
             this.apiService.addStat(request).subscribe(result => {
-                console.log("result", result);
+                this.setHash(result);
+            }, err => {
+                this.publishError = "server error attempting to publish stat";
             })
-        })
+        });
+    }
+
+    unpublish(){
+        this.setHash(null);
     }
 }
 

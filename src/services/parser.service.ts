@@ -1,19 +1,20 @@
 import * as Pako from 'pako';
 import { Injectable } from '@angular/core';
 import { HashService, HashError } from './hash.service';
-import { validatePageAsync } from '@regionstats/validator';
+import { validateStatArrayAsync } from '@regionstats/validator';
 import { Stat } from '@regionstats/models';
 import { Page } from '../models/page';
 import { Observable, of, forkJoin } from 'rxjs';
 import { concatMap, map } from 'rxjs/operators';
 import { StatContainer } from '../models/stat-container';
+import { AnyObject } from '../models/any-object';
 
 
 @Injectable()
 export class ParserService {
     constructor(private hashService: HashService) {
     }
-    tryParseUrlParam(url: string, dictionary?: string): object | string {
+    tryParseUrlParam(url: string, dictionary?: string): AnyObject | string {
         let index = url.indexOf("?") + 1;
         if (!index) {
             return "missing url param";
@@ -46,8 +47,8 @@ export class ParserService {
         }
         return "unable to parse url param";
     }
-    tryParsePage(obj: object): Observable<Page | string> {
-        return validatePageAsync(obj, this.hashService.get.bind(this.hashService)).pipe(
+    tryParsePage(obj: AnyObject): Observable<Page | string> {
+        return validateStatArrayAsync(obj.stats, this.hashService.get.bind(this.hashService)).pipe(
             concatMap(err => {
                 if (err) {
                     return of(err);
@@ -72,8 +73,8 @@ export class ParserService {
                 return forkJoin(observables).pipe(
                     map((arr: StatContainer[]) => { 
                         var page = new Page();
-                        page.stats = arr;
-                        return {stats: arr}
+                        page.statContainers = arr;
+                        return page;
                     })
                 );
             })

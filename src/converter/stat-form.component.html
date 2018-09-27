@@ -11,7 +11,7 @@
     <li class="nav-item">
         <a class="nav-link" [class.active]="tab == 'ipfs'" (click)="setTab('ipfs')" tabindex>
             IPFS
-            <i *ngIf="hash" class="fas fa-check-circle" style="color: #00a000"></i>
+            <i *ngIf="hash" class="fas fa-check pl-1" style="color: #00a000"></i>
         </a>
     </li>
 </ul>
@@ -86,12 +86,82 @@
         </div>
     </div>
 </div>
-<div *ngIf="tab == 'data' && stat">
+<div *ngIf="tab == 'data' && stat && !hash">
     <data-tab-component [(data)]="stat.data" [regionType]="stat.regionType" [regionIntermediary]="stat.regionIntermediary"></data-tab-component>
+</div>
+<div *ngIf="tab == 'data' && stat && hash">
+    <div *ngIf="!regionIntermediary">
+        <div class="row mt-2">
+            <div class="col-5">
+                <strong>
+                    <span>{{stat.regionType}}</span>
+                </strong>
+            </div>
+            <div class="col-5">
+                <strong>
+                    <span>Value</span>
+                </strong>
+            </div>
+        </div>
+        <div class="row mt-1" block-render [items]="stat.data" [itemHeight]="24">
+            <ng-template #itemTemplate let-data="item" let-index="index">
+                <div class="col-5">
+                    {{data.r}}
+                </div>
+                <div class="col-5">
+                    {{data.v}}
+                </div>
+            </ng-template>
+        </div>
+    </div>
+    <div *ngIf="regionIntermediary">
+        <div class="row mt-2">
+            <div class="col-4">
+                <strong>
+                    <span>{{stat.regionIntermediary}}</span>
+                </strong>
+            </div>
+            <div class="col-4">
+                <strong class="pl-2">
+                    <span class="pl-1">{{regionType}}</span>
+                </strong>
+            </div>
+            <div class="col-3">
+                <strong class="pl-2">
+                    <span class="pl-1">Value</span>
+                </strong>
+            </div>
+        </div>
+        <div class="row mt-1" block-render [items]="stat.data" [itemHeight]="24">
+            <ng-template #itemTemplate let-data="item" let-index="index">
+                <div class="col-4">
+                    {{data.i}}
+                </div>
+                <div class="col-4">
+                    {{data.r}}
+                </div>
+                <div class="col-3">
+                    {{data.v}}
+                </div>
+            </ng-template>
+        </div>
+    </div>
 </div>
 <div *ngIf="tab == 'ipfs'">
     <div *ngIf="hash">
-        {{hash}}
+        <div class="row mt-2">
+            <div class="col-3">
+                <label class="col-form-label">IPFS Hash</label>
+            </div>
+            <div class="col-9">
+                <label class="col-form-label">{{hash}}</label>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-9 offset-3">
+                <button class="btn btn-outline-danger" (click)="unpublish()">Detach from IPFS</button>
+            </div>
+        </div>
     </div>
     <div *ngIf="!hash">
         <div class="row mt-2">

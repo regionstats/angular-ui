@@ -4,7 +4,6 @@ import { Observable ,  ReplaySubject ,  BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { ParserService } from './parser.service';
 import { HashService } from './hash.service';
-import { validatePageAsync } from '@regionstats/validator';
 import { Stat } from '@regionstats/models';
 import { Page } from '../models/page';
 import { Calculation } from '../models/calculation';
@@ -45,14 +44,15 @@ export class DataService {
                 return;
             }
             this.parserService.tryParsePage(urlParseResult).subscribe(result => {
+                console.log("result", result)
                 if (typeof result == "string"){
                     this.setStats(null);
                     observer.next(result);
                 } else {
-                    result.stats.forEach((statContainer: StatContainer) => {
+                    result.statContainers.forEach((statContainer: StatContainer) => {
                         statContainer.calc = new Calculation(statContainer.stat.data);
                     });
-                    this.setStats(result.stats);
+                    this.setStats(result.statContainers);
                     observer.next(null)
                 }
             })
