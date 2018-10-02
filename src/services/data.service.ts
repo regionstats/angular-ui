@@ -44,7 +44,6 @@ export class DataService {
                 return;
             }
             this.parserService.tryParsePage(urlParseResult).subscribe(result => {
-                console.log("result", result)
                 if (typeof result == "string"){
                     this.setStats(null);
                     observer.next(result);

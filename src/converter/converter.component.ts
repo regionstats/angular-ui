@@ -36,7 +36,7 @@ export class ConverterComponent {
 
     ngOnInit() {
         this.url = window.location.href;
-        let stat = new Stat({});
+        let stat = new Stat();
         stat.title = "Title of Your Stat";
         stat.regionName = "United States";
         stat.regionType = "State"
@@ -121,7 +121,7 @@ export class ConverterComponent {
     }
 
     addStat() {
-        let stat = new Stat({});
+        let stat = new Stat();
         stat.title = "";
         stat.regionName = "United States";
         stat.regionType = "State"

@@ -7,7 +7,7 @@ import { ElementRef } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
-import { AsyncSubject ,  Observable } from 'rxjs';
+import { AsyncSubject ,  Observable, Subscription } from 'rxjs';
 import { ViewBox } from '../models/view-box';
 import { MapHelpers } from './map-helpers'
 
@@ -25,15 +25,24 @@ export class MapComponent {
     private defs: SVGDefsElement
     private mapGroup: SVGGElement;
     private regions: { [name: string]: SVGElement } = {}; 
-    
+    private currentRegionId: number = 1;
+    private regionNameToId: { [name: string]: number } = {};
+    private idToData: { [id: number]: Data } = {};
+    private existingFilterData: Data[] = [];
+
     public stat: Stat;
     public heightStr: string = "80vh";
 
     public currentView: string = "map";
 
+    public selectedData: Data;
+
+    private statSubscription: Subscription
+
     @Input() minColor: Color;
     @Input() midColor: Color;
     @Input() maxColor: Color;
+    @Input() colorZRange: number = 2;
 
     constructor(private dateService: DataService, private animateService: AnimateService) {
         this.minColor = new Color(224, 236, 255);
@@ -43,22 +52,25 @@ export class MapComponent {
 
     ngOnInit() {
         this.load().subscribe(() => {
-            this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
+            this.statSubscription = this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
                 let stats = arr[0];
                 let indexes = arr[1];
                 let statContainer = stats[indexes[0]];
                 this.stat = statContainer.stat;
                 if (this.stat) {
                     let calc = statContainer.calc;
-                    let range = calc.max.v - calc.min.v;
-                    let zScores = {}
                     let colors = {}
-                    for (var key in this.stat.data) {
-                        zScores[key.toLowerCase()] = (this.stat.data[key].v - calc.mean) / calc.sd;
-                        let ratio = (this.stat.data[key].v - calc.min.v) / range
-                        colors[this.getRegionId(this.stat.data[key])] = this.getColor(ratio);
+                    for (var data of this.stat.data) {
+                        let z = (data.v - calc.mean) / calc.sd;
+                        let regionId = this.regionNameToId[this.getRegionName(data)];
+                        var element = document.getElementById("rs-r-" + regionId);
+                        if (element){
+                            element.setAttribute("fill", this.getColor(z));
+                            this.idToData[regionId] = data;
+                        } else {
+                            console.warn("map has no region for " + data.r);
+                        }
                     }
-                    this.setColors(colors);
                 }
             })
 
@@ -74,14 +86,17 @@ export class MapComponent {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        console.log("changes", changes, this.stat);
     }
 
-    private getRegionId(data: Data): string {
+    ngOnDestroy(){
+        this.statSubscription && this.statSubscription.unsubscribe();
+    }
+
+    private getRegionName(data: Data): string {
         if (data.i) {
-            return data.r.replace(/ /g, "-").toLowerCase() + "," + data.i.replace(/ /g, "-").toLowerCase();
+            return data.r.toLowerCase() + "," + data.i.toLowerCase();
         }
-        return data.r.replace(/ /g, "-").toLowerCase()
+        return data.r.toLowerCase()
     }
 
     private load() {
@@ -94,9 +109,10 @@ export class MapComponent {
             this.svgElement.appendChild(this.defs);
             let unsafeRegionGroup = this.getUnsafeRegionGroup(unsafeSVG);
             this.mapGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            this.currentRegionId = 1;
             this.copySVGChildren(unsafeRegionGroup, this.mapGroup);
             this.svgElement.appendChild(this.mapGroup);
-            this.copySVGChildren(unsafeSVG, this.svgElement);
+            //this.copySVGChildren(unsafeSVG, this.svgElement);
             this.svgElement.setAttribute("width", "100%");
             this.svgElement.setAttribute("height", "100%");
             this.svgElement.setAttribute("viewBox", viewBox.toString());
@@ -117,16 +133,22 @@ export class MapComponent {
         }
     }
 
-    private getColor(ratio) {
+    private getColor(z: number) {
         let val: number;
         let newColor: any = {};
-        if (ratio >= 0.5) {
-            ratio = (ratio * 2) - 1; //ratio now 0 through 1
+        if (z > this.colorZRange){
+            newColor.r = newColor.g = newColor.b = 0;
+        }
+        if (z < -this.colorZRange){
+            newColor.r = newColor.g = newColor.b = 255;
+        }
+        if (z >= 0) {
+            let ratio = 1 - (this.colorZRange - z) / this.colorZRange;
             newColor.r = (this.midColor.r * (1 - ratio)) + (this.maxColor.r * ratio);
             newColor.g = (this.midColor.g * (1 - ratio)) + (this.maxColor.g * ratio);
             newColor.b = (this.midColor.b * (1 - ratio)) + (this.maxColor.b * ratio);
         } else {
-            ratio = ratio * 2; //ratio now 0 through 1
+            let ratio = (this.colorZRange + z) / this.colorZRange;
             newColor.r = (this.minColor.r * (1 - ratio)) + (this.midColor.r * ratio);
             newColor.g = (this.minColor.g * (1 - ratio)) + (this.midColor.g * ratio);
             newColor.b = (this.minColor.b * (1 - ratio)) + (this.midColor.b * ratio);
@@ -189,52 +211,64 @@ export class MapComponent {
                 if (this.svgAttributes.indexOf(attr.name) >= 0) {
                     safe.setAttribute(attr.name, attr.value);
                 } else if (attr.name == "name") {
-                    let regionName = attr.value.replace(/ /g, "-").toLowerCase();
-                    safe.setAttribute("id", "rs-" + regionName)
-                    this.regions[regionName] = safe;
-                    safe.addEventListener("mouseenter", this.mouseEnter.bind(this, regionName));
-                    safe.addEventListener("mouseleave", this.mouseLeave.bind(this, regionName))
+                    this.regionNameToId[attr.value.toLowerCase()] = this.currentRegionId;
+                    safe.setAttribute("id", "rs-r-" + this.currentRegionId)
+                    safe.addEventListener("mouseenter", this.mouseEnter.bind(this, this.currentRegionId));
+                    safe.addEventListener("mouseleave", this.mouseLeave.bind(this, this.currentRegionId))
+                    this.currentRegionId++;
                 }
             }
         }
     }
 
-    private mouseEnter(key: string) {
-        let el = this.regions[key];
-        this.removeElement("rs-" + key);
+    private mouseEnter(id: number, event: MouseEvent) {
+        let el = <Element>event.target;
+        this.removeElement("rs-r-" + id);
         this.mapGroup.appendChild(el);
-        this.regions[key] = el;
-        let id = "filter-" + key
-        el.setAttribute("filter", `url(#${ id })`)
+        let idString = "filter-r-" + id
+
+        this.selectedData = this.idToData[id];
+        let existingFilter = document.getElementById(idString);
         let rect = el.getClientRects()[0];
-        let filter = this.getOffsetFilter(id, rect.width, rect.height)
-        this.defs.appendChild(this.getOffsetFilter(id, rect.width, rect.height));
+        if (existingFilter){
+            this.existingFilterData.push(this.selectedData);
+            this.animateInOffsetFilter(idString, rect.width, rect.height);
+        } else {
+            el.setAttribute("filter", `url(#${ idString })`)
+            let filter = this.getOffsetFilter(idString, rect.width, rect.height);
+            this.defs.appendChild(filter);
+            this.animateInOffsetFilter(idString, rect.width, rect.height);
+        }
     }
 
-    private mouseLeave(key: string) {
-        let el = this.regions[key];
-        let id = "filter-" + key;
+    private mouseLeave(id: number) {
+        let el = <Element>event.target;
+        let idString = "filter-r-" + id;
         let rect = el.getClientRects()[0];
 
         var tasks: Task[] = [];
-        let task = new Task("offset-" + id);
+        let task = new Task("offset-" + idString);
         task.attributes.push(new TaskAttribute("dx", -3 / rect.width, 0))
         task.attributes.push(new TaskAttribute("dy", -3 / rect.height, 0))
         tasks.push(task);
 
-        task = new Task("blur-" + id);
+        task = new Task("blur-" + idString);
         task.attributes.push(new TaskAttribute("slope", 1, 0));
         tasks.push(task);
 
+        let data = this.idToData[id];
         this.animateService.startTasks(tasks, 100, () => {
-            el.removeAttribute("filter");
-            this.removeElement("filter-" + key)
+            var index = this.existingFilterData.indexOf(data);
+            if (index == -1){
+                el.removeAttribute("filter");
+                this.removeElement("filter-r-" + id)
+            } else {
+                this.existingFilterData.splice(index, 1);
+            }
         });
     }
 
     private getOffsetFilter(id: string, width: number, height: number): SVGFilterElement {
-        var tasks: Task[] = [];
-
         let filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
         filter.setAttribute("id", id);
         filter.setAttribute("x", "-.5");
@@ -249,12 +283,7 @@ export class MapComponent {
         feOffset.setAttribute("in", "SourceGraphic");
         feOffset.setAttribute("dx", "0");
         feOffset.setAttribute("dy", "0");
-        feOffset.setAttribute("result", "offOut");
-        
-        let task = new Task("offset-" + id);
-        task.attributes.push(new TaskAttribute("dx", 0, -3 / width))
-        task.attributes.push(new TaskAttribute("dy", 0, -3 / height))
-        tasks.push(task);
+        feOffset.setAttribute("result", "offOut");  
 
         let feComponentTransfer = document.createElementNS("http://www.w3.org/2000/svg", "feComponentTransfer");
         feComponentTransfer.setAttribute("in", "SourceAlpha")
@@ -264,10 +293,6 @@ export class MapComponent {
         feFuncA.setAttribute("type", "linear");
         feFuncA.setAttribute("slope", "0");
         feComponentTransfer.appendChild(feFuncA);
-
-        task = new Task("blur-" + id);
-        task.attributes.push(new TaskAttribute("slope", 0, 1));
-        tasks.push(task);
 
         let feGaussianBlur = document.createElementNS("http://www.w3.org/2000/svg", "feGaussianBlur");
         feGaussianBlur.setAttribute("in", "componentOut");
@@ -284,8 +309,22 @@ export class MapComponent {
         filter.appendChild(feGaussianBlur);
         filter.appendChild(feBlend);
 
-        this.animateService.startTasks(tasks, 100);
         return filter;
+    }
+
+    private animateInOffsetFilter(id: string, width: number, height: number) {
+        var tasks: Task[] = [];
+        
+        let task = new Task("offset-" + id);
+        task.attributes.push(new TaskAttribute("dx", 0, -3 / width))
+        task.attributes.push(new TaskAttribute("dy", 0, -3 / height))
+        tasks.push(task);
+
+        task = new Task("blur-" + id);
+        task.attributes.push(new TaskAttribute("slope", 0, 1));
+        tasks.push(task);
+
+        this.animateService.startTasks(tasks, 100);
     }
 
     private removeElement(id: string) {

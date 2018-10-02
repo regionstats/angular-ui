@@ -30,14 +30,14 @@ export class StatFormComponent {
     }
 
     ngOnInit() {
-        this.source = new Source({});
+        this.source = new Source();
     }
 
     ngOnChanges(changes: SimpleChanges){
         if (changes.selectedStatContainer){
             this.stat = this.selectedStatContainer.stat;
             this.hash = this.selectedStatContainer.hash;
-            this.source = this.stat.source ? this.stat.source : new Source({});
+            this.source = this.stat.source ? this.stat.source : new Source();
             this.sourceChanged();
         }
     }

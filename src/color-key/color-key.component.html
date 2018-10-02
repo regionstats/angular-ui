@@ -1,3 +1,9 @@
-<div [style.background]="background">
-
+<div class="color-key-container">
+    <div class="h-100" [style.background]="background" style="box-shadow: 2px 2px 3px rgba(0,0,0,0.2)"></div>
+    <div class="color-key-mark-avg"></div>
+    <div class="color-key-mark-plus-1"></div>
+    <div class="color-key-mark-minus-1"></div>
+    <div class="color-key-mark-selection" [style.left.%]="selectionLeft">
+        <div class="color-key-mark-arrows"></div>
+    </div>
 </div>

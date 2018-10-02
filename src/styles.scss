@@ -31,3 +31,53 @@ a {
         cursor: default;
     }
 }
+
+.color-key-container{
+    position: relative;
+    height: 2vh;
+    margin-left: 5%;
+    margin-right: 5%;
+    width: 90%;
+}
+
+.color-key-mark-avg{
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    border-left: 1px solid red;
+}
+
+.color-key-mark-plus-1{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 75%;
+    border-left: 1px solid gray;
+}
+
+.color-key-mark-minus-1{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 25%;
+    border-left: 1px solid gray;
+}
+.color-key-mark-selection{
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    height: 100%;
+    left: 50%;
+    transition: left 0.15s;
+}
+.color-key-mark-arrows{
+    position: relative;
+    top: -4px;
+    left: -4px;
+    height: 100%;
+    border: 4px solid black;
+    border-color: black transparent black transparent; 
+    box-sizing: content-box;
+}
