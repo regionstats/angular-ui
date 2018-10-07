@@ -2,14 +2,8 @@ import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef } 
 import * as Pako from 'pako';
 import { ParserService } from '../services/parser.service'
 import { HashService } from '../services/hash.service'
-import { Stat } from '@regionstats/models';
-import { Source } from '../models/source';
-import { Data } from '../models/data';
-import readXlsxFile from 'read-excel-file';
-import { BlockRenderComponent } from '../common/block-render.component';
-import { Observable, forkJoin } from 'rxjs';
+import { Stat, Source } from '@regionstats/models';
 import { validateStatArrayAsync } from '@regionstats/validator';
-import { map } from 'rxjs/operators';
 import { StatContainer } from '../models/stat-container';
 
 @Component({
@@ -122,10 +116,12 @@ export class ConverterComponent {
 
     addStat() {
         let stat = new Stat();
+        let previousStat = this.statContainers[0].stat;
         stat.title = "";
-        stat.regionName = "United States";
-        stat.regionType = "State"
-        stat.source = new Source();
+        stat.regionName = previousStat.regionName;
+        stat.regionType = previousStat.regionType;
+        stat.regionIntermediary = previousStat.regionIntermediary;
+        stat.source = new Source(previousStat.source);
         this.selectedStatContainer = {stat: stat};
         this.statContainers.push(this.selectedStatContainer);
         this.tab = "main";

@@ -22,7 +22,7 @@ export class AppComponent {
                 this.currentView = "converter"
                 this.noData = true;
             } else {
-                this.currentView = "map";
+                this.currentView = "scatterplot";
             }
         });
     }

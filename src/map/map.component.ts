@@ -5,14 +5,14 @@ import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
 import { DataService } from '../services/data.service';
-import { Stat } from '@regionstats/models';
+import { Stat, Data } from '@regionstats/models';
 import { Color } from '../models/color';
 import { AsyncSubject ,  Observable, Subscription } from 'rxjs';
 import { ViewBox } from '../models/view-box';
 import { MapHelpers } from './map-helpers'
 
 import { Task, TaskAttribute, AnimateService } from '../services/animate.service';
-import { Data } from '../models/data';
+import * as helpers from '../common/helpers'
 
 @Component({
     selector: 'map-component',
@@ -28,7 +28,7 @@ export class MapComponent {
     private currentRegionId: number = 1;
     private regionNameToId: { [name: string]: number } = {};
     private idToData: { [id: number]: Data } = {};
-    private existingFilterData: Data[] = [];
+    private existingFilterData: Data    [] = [];
 
     public stat: Stat;
     public heightStr: string = "80vh";
@@ -62,13 +62,14 @@ export class MapComponent {
                     let colors = {}
                     for (var data of this.stat.data) {
                         let z = (data.v - calc.mean) / calc.sd;
-                        let regionId = this.regionNameToId[this.getRegionName(data)];
+                        let regionName = helpers.getRegionName(data);
+                        let regionId = this.regionNameToId[regionName];
                         var element = document.getElementById("rs-r-" + regionId);
                         if (element){
                             element.setAttribute("fill", this.getColor(z));
                             this.idToData[regionId] = data;
                         } else {
-                            console.warn("map has no region for " + data.r);
+                            console.warn("map has no region for " + regionName);
                         }
                     }
                 }
@@ -92,16 +93,9 @@ export class MapComponent {
         this.statSubscription && this.statSubscription.unsubscribe();
     }
 
-    private getRegionName(data: Data): string {
-        if (data.i) {
-            return data.r.toLowerCase() + "," + data.i.toLowerCase();
-        }
-        return data.r.toLowerCase()
-    }
-
     private load() {
-        //var url = "assets/Counties.svg";
-        var url = "assets/US.svg"
+        var url = "assets/Counties.svg";
+        //var url = "assets/US.svg"
         return MapHelpers.loadUnsafeSVG(url).pipe(tap(unsafeSVG => {
             let viewBox = new ViewBox(unsafeSVG);
             this.svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -203,21 +197,34 @@ export class MapComponent {
     //tags in popular wikipedia maps:
     //europe.svg ["d", "id", "style", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "sodipodi:nodetypes", "inkscape:connector-curvature", "transform", "y", "x", "height", "width", "clip-path"]
     //US.svg ["name", "fill", "d", "undefined", "item", "getNamedItem", "getNamedItemNS", "setNamedItem", "setNamedItemNS", "removeNamedItem", "removeNamedItemNS", "id", "stroke", "stroke-width", "cx", "cy", "r", "opacity"]
-    private svgAttributes = ["d", "style", "fill", "item", "transform", "stroke", "stroke-width", "y", "x", "cx", "cy", "r", "height", "width"]
+    //fill and name excluded
+    private svgAttributes = ["d", "style", "item", "transform", "stroke", "stroke-width", "y", "x", "cx", "cy", "r", "height", "width"]
     private copySVGAttributes(unsafe: SVGElement, safe: SVGElement) {
+        let fill = "";
+        let hasName = false;
         for (var key in unsafe.attributes) {
             let attr = unsafe.attributes[key];
             if (attr.name && attr.value) {
                 if (this.svgAttributes.indexOf(attr.name) >= 0) {
                     safe.setAttribute(attr.name, attr.value);
                 } else if (attr.name == "name") {
-                    this.regionNameToId[attr.value.toLowerCase()] = this.currentRegionId;
+                    hasName = true;
+                    var names = attr.value.split("|");
+                    names.forEach(name => {
+                        this.regionNameToId[name.toLowerCase()] = this.currentRegionId;
+                    });
                     safe.setAttribute("id", "rs-r-" + this.currentRegionId)
+                    safe.setAttribute("fill", "#bbb");
                     safe.addEventListener("mouseenter", this.mouseEnter.bind(this, this.currentRegionId));
                     safe.addEventListener("mouseleave", this.mouseLeave.bind(this, this.currentRegionId))
                     this.currentRegionId++;
+                } else if (attr.name == "fill"){
+                    fill = attr.value;
                 }
             }
+        }
+        if (!hasName && fill){
+            safe.setAttribute("fill", fill);
         }
     }
 

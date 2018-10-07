@@ -18,7 +18,7 @@
     "@angular/platform-browser-dynamic": "^6.0.7",
     "@angular/router": "^6.0.7",
     "@regionstats/models": "^1.0.4",
-    "@regionstats/validator": "^1.4.2",
+    "@regionstats/validator": "^1.4.3",
     "bootstrap": "^4.0.0",
     "core-js": "^2.4.1",
     "pako": "^1.0.6",

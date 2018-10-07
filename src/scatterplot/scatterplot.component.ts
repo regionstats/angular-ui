@@ -10,11 +10,13 @@ import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { ViewBox } from '../models/view-box';
-import { Data } from '../models/data';
+import { Data } from '@regionstats/models';
 import { Dot } from './dot';
 import { AnimateService, Task, TaskAttribute } from '../services/animate.service';
 import { Attribute } from '@angular/compiler';
 import { Calculation } from '../models/calculation';
+
+type DotMap = { [region: string]: Dot };
 
 @Component({
     selector: 'scatterplot-component',
@@ -116,7 +118,6 @@ export class ScatterplotComponent {
         this.maxZ = Math.max(maxZX, maxZY);
         this.zViewboxRatio = 5000 * this.marginRatio / this.maxZ;
         let tasks: Task[] = [];
-
         // ***************************************
         // ***** SD Markers
         // ***************************************
@@ -285,8 +286,8 @@ export class ScatterplotComponent {
         }
     }
 
-    private getDotMap(): { [region: string]: Dot } {
-        let dotMap = {};
+    private getDotMap(): DotMap {
+        let dotMap: DotMap = {};
         this.statX.data.forEach(data => {
             let dot = dotMap[data.r];
             if (!dot) {
@@ -305,6 +306,11 @@ export class ScatterplotComponent {
             dot.y = (data.v - this.calcY.mean) / this.calcY.sd;
             dot.yValue = data.v
         });
+        for (let key in dotMap){
+            if (dotMap[key].x == null || dotMap[key].y == null){
+                delete dotMap[key];
+            }
+        }
         return dotMap;
     }
 

@@ -22,7 +22,7 @@ export class HashService {
         }
         let subject = new AsyncSubject<any>();
         this.activeRequests[hash] = subject;
-        this.http.get("https://gateway.ipfs.io/ipfs/" + hash).pipe(timeout(10000)).subscribe(result => {
+        this.http.get("https://ipfs.io/ipfs/" + hash).pipe(timeout(10000)).subscribe(result => {
             this.hashValues[hash] = result; 
             subject.next(this.hashValues[hash]);
             subject.complete();

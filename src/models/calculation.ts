@@ -1,4 +1,4 @@
-import { Data } from "./data";
+import { Data } from "@regionstats/models";
 
 export class Calculation {
     sum: number;

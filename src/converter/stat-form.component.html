@@ -3,10 +3,13 @@
         <a class="nav-link" [class.active]="tab == 'main'" (click)="setTab('main')" tabindex>Main Info</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" [class.active]="tab == 'source'" (click)="setTab('source')" tabindex>Source</a>
+        <a class="nav-link" [class.active]="tab == 'data'" (click)="setTab('data')" tabindex>Data</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" [class.active]="tab == 'data'" (click)="setTab('data')" tabindex>Data</a>
+        <a class="nav-link" [class.active]="tab == 'source'" (click)="setTab('source')" tabindex>
+            Source
+            <i *ngIf="stat.source" class="fas fa-check pl-1" style="color: #00a000"></i>
+        </a>
     </li>
     <li class="nav-item">
         <a class="nav-link" [class.active]="tab == 'ipfs'" (click)="setTab('ipfs')" tabindex>
@@ -82,7 +85,8 @@
             <label for="source-url-input" class="col-form-label">Source URL</label>
         </div>
         <div class="col-9">
-            <input class="form-control" id="source-url-input" [(ngModel)]="source.url" (ngModelChange)="sourceChanged()" [disabled]="hash">
+            <input class="form-control" id="source-url-input" [(ngModel)]="source.url" (ngModelChange)="sourceChanged()"
+                [disabled]="hash">
         </div>
     </div>
 </div>
@@ -90,7 +94,7 @@
     <data-tab-component [(data)]="stat.data" [regionType]="stat.regionType" [regionIntermediary]="stat.regionIntermediary"></data-tab-component>
 </div>
 <div *ngIf="tab == 'data' && stat && hash">
-    <div *ngIf="!regionIntermediary">
+    <div *ngIf="!stat.regionIntermediary">
         <div class="row mt-2">
             <div class="col-5">
                 <strong>
@@ -114,7 +118,7 @@
             </ng-template>
         </div>
     </div>
-    <div *ngIf="regionIntermediary">
+    <div *ngIf="stat.regionIntermediary">
         <div class="row mt-2">
             <div class="col-4">
                 <strong>
@@ -122,13 +126,13 @@
                 </strong>
             </div>
             <div class="col-4">
-                <strong class="pl-2">
-                    <span class="pl-1">{{regionType}}</span>
+                <strong>
+                    <span>{{stat.regionType}}</span>
                 </strong>
             </div>
             <div class="col-3">
-                <strong class="pl-2">
-                    <span class="pl-1">Value</span>
+                <strong>
+                    <span>Value</span>
                 </strong>
             </div>
         </div>

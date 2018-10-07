@@ -6,6 +6,7 @@ import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
 import { AsyncSubject } from 'rxjs';
 import { TableRow } from './table-row';
+import * as helpers from '../common/helpers';
 
 @Component({
     selector: 'table-component',
@@ -161,10 +162,11 @@ export class TableComponent {
         this.tableRowMap = {};
         this.stats.forEach(stat => {
             stat.data.forEach(data => {
-                var tableRow = this.tableRowMap[data.r];
+                var regionName = helpers.getRegionName(data);
+                var tableRow = this.tableRowMap[regionName];
                 if (!tableRow) {
-                    tableRow = new TableRow(data.r);
-                    this.tableRowMap[data.r] = tableRow;
+                    tableRow = new TableRow(data.r, data.i);
+                    this.tableRowMap[regionName] = tableRow;
                     this.tableRowList.push(tableRow);
                 }
                 tableRow.values.push(data.v);

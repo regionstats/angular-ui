@@ -1,8 +1,10 @@
 export class TableRow{
-    constructor(region: string) {
+    constructor(region: string, intermediary?: string) {
         this.region = region;
+        this.intermediary = intermediary;
         this.values = [];
     }
     region: string;
+    intermediary: string;
     values: number[];
 }
