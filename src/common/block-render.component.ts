@@ -112,7 +112,7 @@ export class BlockRenderComponent<T>{
     private updateBlocksVisibility() {
         this.viewportHeight = this.scrollContainer.clientHeight;
         this.scrollTop = this.scrollContainer.scrollTop;
-        this.elementOffsetTop = this.elementRef.nativeElement.offsetTop;
+        this.elementOffsetTop = this.getOffsetTop(this.elementRef.nativeElement);
         let hasChanges = false;
         this.blocks.forEach((block, i) => {
             let result = this.isBlockVisible(i);
@@ -133,6 +133,13 @@ export class BlockRenderComponent<T>{
                 }
             }, 50)
         }
+    }
+
+    private getOffsetTop(element: HTMLElement){
+        if (!element.offsetParent || element.offsetParent.tagName == "BODY"){
+            return element.offsetTop;
+        }
+        return element.offsetTop + this.getOffsetTop(<HTMLElement>element.offsetParent);
     }
 
 }

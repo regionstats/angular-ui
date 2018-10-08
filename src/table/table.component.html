@@ -13,15 +13,23 @@
     </div>
     <div class="table-body-container">
         <div class="table-region-column" [class.shadow]="scrollLeft">
-            <div *ngFor="let row of tableRowList" class="table-region-cell">
-                {{row.region}}
+            <div block-render [items]="tableRowList" [itemHeight]="25">
+                <ng-template #itemTemplate let-row="item">
+                    <div class="table-region-cell">
+                        {{row.region}}
+                    </div>
+                </ng-template>
             </div>
         </div>
         <div class="table-data" #tableData>
-            <div *ngFor="let row of tableRowList" [style.width]="rowWidth" class="table-data-row">
-                <div *ngFor="let value of row.values" class="table-data-cell">
-                    {{value}}
-                </div>
+            <div block-render [items]="tableRowList" [itemHeight]="25">
+                <ng-template #itemTemplate let-row="item">
+                    <div [style.width]="rowWidth" class="table-data-row">
+                        <div *ngFor="let index of tableValueIndexes" class="table-data-cell">
+                            {{row.values[index]}}
+                        </div>
+                    </div>
+                </ng-template>
             </div>
         </div>
     </div>

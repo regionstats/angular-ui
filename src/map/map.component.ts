@@ -133,10 +133,10 @@ export class MapComponent {
         if (z > this.colorZRange){
             newColor.r = newColor.g = newColor.b = 0;
         }
-        if (z < -this.colorZRange){
+        else if (z < -this.colorZRange){
             newColor.r = newColor.g = newColor.b = 255;
         }
-        if (z >= 0) {
+        else if (z >= 0) {
             let ratio = 1 - (this.colorZRange - z) / this.colorZRange;
             newColor.r = (this.midColor.r * (1 - ratio)) + (this.maxColor.r * ratio);
             newColor.g = (this.midColor.g * (1 - ratio)) + (this.maxColor.g * ratio);

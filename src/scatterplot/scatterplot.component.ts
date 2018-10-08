@@ -41,6 +41,7 @@ export class ScatterplotComponent {
     private maxZ: number;
     private zViewboxRatio: number;
     private marginRatio: number;
+    private circleOpacity: number = 0.4;
 
     private slope: number;
     private intercept: number;
@@ -270,13 +271,13 @@ export class ScatterplotComponent {
         if (this.currentHoverDot && dot != this.currentHoverDot) {
             let task = new Task("rs-" + this.currentHoverDot.region);
             task.attributes.push(new TaskAttribute("r", 0.18 * this.zViewboxRatio, 0.12 * this.zViewboxRatio));
-            task.attributes.push(new TaskAttribute("fill-opacity", 0.9, 0.6));
+            task.attributes.push(new TaskAttribute("fill-opacity", 0.9, this.circleOpacity));
             tasks.push(task);
         }
         if (dot && dot != this.currentHoverDot) {
             let task = new Task("rs-" + dot.region);
             task.attributes.push(new TaskAttribute("r", 0.12 * this.zViewboxRatio, 0.18 * this.zViewboxRatio));
-            task.attributes.push(new TaskAttribute("fill-opacity", 0.6, 0.9));
+            task.attributes.push(new TaskAttribute("fill-opacity", this.circleOpacity, 0.9));
             tasks.push(task);
         }
         this.currentHoverDot = dot;
@@ -332,7 +333,7 @@ export class ScatterplotComponent {
         circle.setAttribute("r", r.toString());
         circle.setAttribute("cx", (5000 + this.zViewboxRatio * dot.x).toString());
         circle.setAttribute("cy", (5000 - this.zViewboxRatio * dot.y).toString());
-        circle.setAttribute("fill-opacity", "0.6");
+        circle.setAttribute("fill-opacity", <any>this.circleOpacity);
         circle.setAttribute("id", "rs-" + dot.region);
         this.dotGroup.appendChild(circle);
     }

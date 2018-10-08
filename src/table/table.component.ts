@@ -23,6 +23,7 @@ export class TableComponent {
 
     public tableRowList: TableRow[] = [];
     public tableRowMap: { [region: string]: TableRow } = {};
+    public tableValueIndexes: number[] = [];
     public stats: Stat[];
     public rowWidth: string;
     public scrollLeft: number = 0;
@@ -160,7 +161,9 @@ export class TableComponent {
     updateTableRows() {
         this.tableRowList = [];
         this.tableRowMap = {};
-        this.stats.forEach(stat => {
+        this.tableValueIndexes = [];
+        this.stats.forEach((stat, i) => {
+            this.tableValueIndexes.push(i);
             stat.data.forEach(data => {
                 var regionName = helpers.getRegionName(data);
                 var tableRow = this.tableRowMap[regionName];
@@ -169,7 +172,7 @@ export class TableComponent {
                     this.tableRowMap[regionName] = tableRow;
                     this.tableRowList.push(tableRow);
                 }
-                tableRow.values.push(data.v);
+                tableRow.values[i] = data.v;
             })
         });
     }
