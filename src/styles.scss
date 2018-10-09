@@ -16,7 +16,6 @@ body {
     overflow-x: hidden;
     padding: 0;
 }
-
 .trans{
     transition: fill 0.3s;
 }
@@ -24,13 +23,24 @@ body {
     transition: cx 2s;
     transition: cy 2s;
 }
-
 a {
     cursor: pointer;
     &.active{
         cursor: default;
     }
 }
+.mouse-popover{
+    position: fixed;
+
+    z-index: 1000;
+    pointer-events: none;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid #ddd;
+}
+
+
+
+
 
 .color-key-container{
     position: relative;

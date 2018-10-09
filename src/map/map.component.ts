@@ -1,6 +1,6 @@
 
 import {tap, combineLatest} from 'rxjs/operators';
-import { Component, Input, SimpleChange, SimpleChanges } from '@angular/core';
+import { Component, Input, SimpleChange, SimpleChanges, NgZone } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
@@ -13,6 +13,7 @@ import { MapHelpers } from './map-helpers'
 
 import { Task, TaskAttribute, AnimateService } from '../services/animate.service';
 import * as helpers from '../common/helpers'
+import { Calculation } from '../models/calculation';
 
 @Component({
     selector: 'map-component',
@@ -24,18 +25,21 @@ export class MapComponent {
     private svgElement: SVGSVGElement;
     private defs: SVGDefsElement
     private mapGroup: SVGGElement;
-    private regions: { [name: string]: SVGElement } = {}; 
+    private regions: { [name: string]: SVGElement } = {};
     private currentRegionId: number = 1;
     private regionNameToId: { [name: string]: number } = {};
     private idToData: { [id: number]: Data } = {};
     private existingFilterData: Data    [] = [];
 
     public stat: Stat;
+    public calc: Calculation;
     public heightStr: string = "80vh";
+    public metricFormat = helpers.metricFormat;
 
     public currentView: string = "map";
-
     public selectedData: Data;
+
+    public sdString: string = "";
 
     private statSubscription: Subscription
 
@@ -44,7 +48,7 @@ export class MapComponent {
     @Input() maxColor: Color;
     @Input() colorZRange: number = 2;
 
-    constructor(private dateService: DataService, private animateService: AnimateService) {
+    constructor(private dateService: DataService, private animateService: AnimateService, private zone: NgZone) {
         this.minColor = new Color(224, 236, 255);
         this.midColor = new Color(0, 99, 255);
         this.maxColor = new Color(0, 16, 35);
@@ -56,12 +60,12 @@ export class MapComponent {
                 let stats = arr[0];
                 let indexes = arr[1];
                 let statContainer = stats[indexes[0]];
+                this.calc = statContainer.calc;
                 this.stat = statContainer.stat;
                 if (this.stat) {
-                    let calc = statContainer.calc;
                     let colors = {}
                     for (var data of this.stat.data) {
-                        let z = (data.v - calc.mean) / calc.sd;
+                        let z = (data.v - this.calc.mean) / this.calc.sd;
                         let regionName = helpers.getRegionName(data);
                         let regionId = this.regionNameToId[regionName];
                         var element = document.getElementById("rs-r-" + regionId);
@@ -124,6 +128,17 @@ export class MapComponent {
             this.heightStr = svgHeight + "px";
         } else {
             this.heightStr = "80vh";
+        }
+    }
+
+    private setSelectedData(data: Data){
+        if (this.selectedData != data){
+            this.zone.run(() => {
+                this.selectedData = data;
+                if (data){
+                    this.sdString = (data.v > this.calc.mean ? "+" : "") + helpers.metricFormat((data.v - this.calc.mean) / this.calc.sd);
+                }
+            });
         }
     }
 
@@ -215,8 +230,10 @@ export class MapComponent {
                     });
                     safe.setAttribute("id", "rs-r-" + this.currentRegionId)
                     safe.setAttribute("fill", "#bbb");
-                    safe.addEventListener("mouseenter", this.mouseEnter.bind(this, this.currentRegionId));
-                    safe.addEventListener("mouseleave", this.mouseLeave.bind(this, this.currentRegionId))
+                    this.zone.runOutsideAngular(() => {
+                        safe.addEventListener("mouseenter", this.mouseEnter.bind(this, this.currentRegionId));
+                        safe.addEventListener("mouseleave", this.mouseLeave.bind(this, this.currentRegionId))
+                    });
                     this.currentRegionId++;
                 } else if (attr.name == "fill"){
                     fill = attr.value;
@@ -234,7 +251,7 @@ export class MapComponent {
         this.mapGroup.appendChild(el);
         let idString = "filter-r-" + id
 
-        this.selectedData = this.idToData[id];
+        this.setSelectedData(this.idToData[id]);
         let existingFilter = document.getElementById(idString);
         let rect = el.getClientRects()[0];
         if (existingFilter){
@@ -267,6 +284,9 @@ export class MapComponent {
         this.animateService.startTasks(tasks, 100, () => {
             var index = this.existingFilterData.indexOf(data);
             if (index == -1){
+                if (this.selectedData == data){
+                    this.setSelectedData(null);
+                }
                 el.removeAttribute("filter");
                 this.removeElement("filter-r-" + id)
             } else {

@@ -1,15 +1,21 @@
 
 
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 
 @Injectable()
 export class AnimateService {
    
     private taskMapContainers: TaskMapContainer[] = [];
 
-    constructor() { }
+    constructor(private zone: NgZone) { }
 
     startTasks(tasks: Task[], duration: number, callback?: () => any) {
+        this.zone.runOutsideAngular(() => {
+            this._startTasks(tasks, duration, callback);
+        })
+    }
+
+    private _startTasks(tasks: Task[], duration: number, callback?: () => any){
         let container = new TaskMapContainer();
         container.map = {};
         /*

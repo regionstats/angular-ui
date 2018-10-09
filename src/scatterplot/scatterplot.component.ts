@@ -1,6 +1,6 @@
 
 import {combineLatest} from 'rxjs/operators';
-import { Component, Input, SimpleChange, SimpleChanges } from '@angular/core';
+import { Component, Input, SimpleChange, SimpleChanges, NgZone } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
@@ -15,6 +15,8 @@ import { Dot } from './dot';
 import { AnimateService, Task, TaskAttribute } from '../services/animate.service';
 import { Attribute } from '@angular/compiler';
 import { Calculation } from '../models/calculation';
+
+import * as helpers from '../common/helpers';
 
 type DotMap = { [region: string]: Dot };
 
@@ -33,6 +35,8 @@ export class ScatterplotComponent {
     public calcX: Calculation;
     public calcY: Calculation;
 
+    public metricFormat = helpers.metricFormat;
+
     private svgElement: SVGSVGElement;
     private sdMarkersGroup: SVGGElement;
     private axisGroup: SVGGElement;
@@ -50,7 +54,7 @@ export class ScatterplotComponent {
     private currentClickDot: Dot;
     private currentHoverDot: Dot;
 
-    constructor(private dateService: DataService, private animateService: AnimateService) {
+    constructor(private dateService: DataService, private animateService: AnimateService, private zone: NgZone) {
         this.marginRatio = .95;
         this.maxZ = 4;
         this.zViewboxRatio = 5000 * this.marginRatio / this.maxZ;
@@ -88,11 +92,12 @@ export class ScatterplotComponent {
             this.statsChanged();
         });
         this.setWidth();
-        this.svgContainer.nativeElement.addEventListener("click", this.mouseClick.bind(this))
-        this.svgContainer.nativeElement.addEventListener("mousemove", this.mouseMove.bind(this))
-        this.svgContainer.nativeElement.addEventListener("mouseleave", this.dotHovered.bind(this, null))
+        this.zone.runOutsideAngular(() => {
+            this.svgContainer.nativeElement.addEventListener("click", this.mouseClick.bind(this))
+            this.svgContainer.nativeElement.addEventListener("mousemove", this.mouseMove.bind(this))
+            this.svgContainer.nativeElement.addEventListener("mouseleave", this.dotHovered.bind(this, null))
+        })
     }
-
     private setWidth() {
         let width = document.getElementById("scroll-container").clientWidth
         let height = document.documentElement.clientHeight;
@@ -264,17 +269,20 @@ export class ScatterplotComponent {
             this.currentClickDot = this.dotMap[this.currentClickDot.region];
         }
         this.currentDot = this.currentHoverDot ? this.currentHoverDot : this.currentClickDot;
-        //this.currentDot = this.currentClickDot ? this.currentClickDot : this.currentHoverDot;
+        this.zone.run(() => {})
     }
     private dotHovered(dot: Dot) {
+        if (dot == this.currentDot){
+            return;
+        }
         let tasks: Task[] = []
-        if (this.currentHoverDot && dot != this.currentHoverDot) {
+        if (this.currentHoverDot) {
             let task = new Task("rs-" + this.currentHoverDot.region);
             task.attributes.push(new TaskAttribute("r", 0.18 * this.zViewboxRatio, 0.12 * this.zViewboxRatio));
             task.attributes.push(new TaskAttribute("fill-opacity", 0.9, this.circleOpacity));
             tasks.push(task);
         }
-        if (dot && dot != this.currentHoverDot) {
+        if (dot) {
             let task = new Task("rs-" + dot.region);
             task.attributes.push(new TaskAttribute("r", 0.12 * this.zViewboxRatio, 0.18 * this.zViewboxRatio));
             task.attributes.push(new TaskAttribute("fill-opacity", this.circleOpacity, 0.9));
@@ -437,7 +445,7 @@ export class ScatterplotComponent {
             xAvgText.setAttribute("id", "x-avg-text")
             xAvgText.setAttribute("fill", "#555")
         }
-        xAvgText.innerHTML = this.metricFormat(this.calcY.mean);
+        xAvgText.innerHTML = helpers.metricFormat(this.calcY.mean);
         this.axisGroup.appendChild(xAvgText);
         let yAvgText: any = document.getElementById("y-avg-text");
         if (!yAvgText){
@@ -448,16 +456,7 @@ export class ScatterplotComponent {
             yAvgText.setAttribute("id", "y-avg-text")
             yAvgText.setAttribute("fill", "#555")
         }
-        yAvgText.innerHTML = this.metricFormat(this.calcX.mean);
+        yAvgText.innerHTML = helpers.metricFormat(this.calcX.mean);
         this.axisGroup.appendChild(yAvgText);
-    }
-    public metricFormat(num: number): string {
-        let letters = ["", "k", "M", "G", "T", "P"];
-        let i = 0;
-        while (num >= 1000) {
-            num /= 1000;
-            i++;
-        }
-        return parseFloat(num.toPrecision(3)) + letters[i];
     }
 }

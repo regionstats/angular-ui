@@ -16,6 +16,7 @@ import { BlockRenderComponent } from './common/block-render.component';
 import { StatFormComponent } from './converter/stat-form.component';
 import { DataTabComponent } from './converter/data-tab.component';
 import { APIService } from './services/api.service';
+import { MousePopoverComponent } from './common/mouse-popover.component';
 
 @NgModule({
     declarations: [
@@ -27,7 +28,8 @@ import { APIService } from './services/api.service';
         ScatterplotComponent,
         BlockRenderComponent,
         StatFormComponent,
-        DataTabComponent
+        DataTabComponent,
+        MousePopoverComponent
     ],
     imports: [
         BrowserModule,

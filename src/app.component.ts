@@ -1,7 +1,4 @@
 import { Component } from '@angular/core';
-import { ViewChild } from '@angular/core';
-import { ElementRef } from '@angular/core';
-
 import { HttpClient } from '@angular/common/http'
 import { DataService } from './services/data.service';
 

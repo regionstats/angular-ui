@@ -1,6 +1,10 @@
 <div>
     <h3 class="text-center">{{stat?.title}}</h3>
     <div #svgContainer [style.height]="heightStr"></div>
+    <mouse-popover *ngIf="selectedData">
+        <h3 class="text-nowrap pl-2 pr-2">{{selectedData.r}}<small *ngIf="selectedData.i">, {{selectedData?.i}}</small></h3>
+        <h3 class="text-nowrap pl-2 pr-2">{{metricFormat(selectedData.v)}}<small class="text-muted pull-right"> ({{sdString}})</small></h3>
+    </mouse-popover>
     <div class="mt-4 mb-4">
         <color-key [selectedData]="selectedData"></color-key>
     </div>
