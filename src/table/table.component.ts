@@ -28,6 +28,8 @@ export class TableComponent {
     public rowWidth: string;
     public scrollLeft: number = 0;
     public scrollbarWidth: number = 0;
+    public intermediary: string;
+    public regionType: string;
 
     private verticalScrollFunctionRef: (e) => {};
     private headerScrollFunctionRefs: Array<(e) => {}> = [null, null];
@@ -53,6 +55,8 @@ export class TableComponent {
         this.dataService.getStats().subscribe(statContainers => {
             this.stats = statContainers.map(z => z.stat);
             this.rowWidth = (this.stats.length * 120) + "px";
+            this.intermediary = this.stats.map(z => z.regionIntermediary).find(z => z != null);
+            this.regionType = this.stats.map(z => z.regionType).find(z => z != null);
             this.updateTableRows();
             setTimeout(() => {
                 if (this.destroyed){
@@ -114,13 +118,14 @@ export class TableComponent {
             return;
         }
 
-        let styleStr = `left: ${(140 + 120 * this.selectedIndexes[0]) - this.scrollLeft}px;`;
+        let regionWidth = this.intermediary ? 280 : 140;
+        let styleStr = `left: ${(regionWidth + 120 * this.selectedIndexes[0]) - this.scrollLeft}px;`;
         if (!showTransition) {
             styleStr += "transition: none;";
         }
         this.primaryLine.nativeElement.setAttribute("style", styleStr);
         if (this.indexCount >= 2) {
-            let styleStr = `left: ${(140 + 120 * this.selectedIndexes[1]) - this.scrollLeft}px;`;
+            let styleStr = `left: ${(regionWidth + 120 * this.selectedIndexes[1]) - this.scrollLeft}px;`;
             if (!showTransition) {
                 styleStr += "transition: none;";
             }

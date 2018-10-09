@@ -12,11 +12,25 @@
         </div>
     </div>
     <div class="table-body-container">
-        <div class="table-region-column" [class.shadow]="scrollLeft">
+        <div *ngIf="!intermediary" class="table-region-column" [class.shadow]="scrollLeft">
             <div block-render [items]="tableRowList" [itemHeight]="25">
                 <ng-template #itemTemplate let-row="item">
                     <div class="table-region-cell">
                         {{row.region}}
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+        <div *ngIf="intermediary" class="table-region-double-column" [class.shadow]="scrollLeft">
+            <div block-render [items]="tableRowList" [itemHeight]="25">
+                <ng-template #itemTemplate let-row="item">
+                    <div class="table-region-cell">
+                        <div class="half-cell">
+                                {{row.intermediary}}
+                        </div>
+                        <div class="half-cell left-border">
+                                {{row.region}}
+                        </div>
                     </div>
                 </ng-template>
             </div>
@@ -35,8 +49,16 @@
     </div>
 </div>
 <ng-template #templateHeader>
-    <div class="table-header-spacer" [class.shadow]="scrollLeft">
+    <div *ngIf="!intermediary" class="table-header-spacer" [class.shadow]="scrollLeft">
         Region
+    </div>
+    <div *ngIf="intermediary" class="table-header-double-spacer" [class.shadow]="scrollLeft">
+        <div class="half-cell">
+            {{intermediary}}
+        </div>
+        <div class="half-cell left-border">
+            {{regionType}}
+        </div>
     </div>
     <div class="table-header">
         <div class="table-header-row" [style.width]="rowWidth">

@@ -59,6 +59,25 @@ $border-color: #ccc;
         border-right: 1px solid #888;
     }
 }
+.half-cell{
+    display: inline-block;
+    width: 50%;
+    height: 100%;
+}
+.left-border{
+    border-left: 1px solid $border-color;
+}
+.table-header-double-spacer{
+    min-width: $region-width * 2;
+    max-width: $region-width * 2;
+    border-top: 1px solid $border-color;
+    border-left: 1px solid $border-color;
+    transition: box-shadow 0.2s;
+    &.shadow{
+        border-right: 1px solid #888;
+    }
+}
+
 .table-header-scroll-hide{
     overflow: hidden;
 }
@@ -89,9 +108,18 @@ $border-color: #ccc;
     transition: box-shadow 0.2s;
     &.shadow{
         border-right: 1px solid #888;
-    }
-    
+    } 
 }
+.table-region-double-column{
+    z-index: 50;
+    min-width: $region-width * 2;
+    max-width: $region-width * 2;
+    transition: box-shadow 0.2s;
+    &.shadow{
+        border-right: 1px solid #888;
+    } 
+}
+
 .table-region-cell{
     border-left: 1px solid $border-color;
     border-bottom: 1px solid $border-color;
