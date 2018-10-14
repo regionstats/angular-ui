@@ -43,14 +43,23 @@ export class AnimateService {
         container.prevTime = Date.now();
         container.endTime = container.prevTime + duration;
         let map = container.map;
-        let intervalId = setInterval(() => {
+        var renderFrameRef = renderFrame.bind(this);
+        requestAnimationFrame(renderFrameRef);
+        var test = performance.now;
+        function renderFrame(){
             let now = Date.now();
+            if (now - container.prevTime < 10){
+                requestAnimationFrame(renderFrameRef);
+                return;
+            }
             let percent = (now - container.prevTime) / (container.endTime - container.prevTime);
+            container.prevTime = now;
             for (let key in map) {
                 let el = document.getElementById(key);
                 if (el) {
                     map[key].attributes.forEach(attr => {
                         attr.val += (attr.endVal - attr.val) * percent;
+
                         if (percent < 1) {
                             el.setAttribute(attr.name, attr.val.toString());
                         } else {
@@ -59,15 +68,15 @@ export class AnimateService {
                     })
                 }
             }
-            container.prevTime = now;
             if (percent >= 1) {
-                clearInterval(intervalId);
                 this.taskMapContainers = this.taskMapContainers.filter(z => z != container);
                 if (typeof callback == "function") {
                     callback();
                 }
+            } else {
+                requestAnimationFrame(renderFrameRef);
             }
-        }, 5);
+        }
     }
 }
 

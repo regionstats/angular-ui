@@ -1,6 +1,6 @@
 
 import {combineLatest} from 'rxjs/operators';
-import { Component, Input, SimpleChange, SimpleChanges, NgZone } from '@angular/core';
+import { Component, Input, SimpleChange, SimpleChanges, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
@@ -8,7 +8,7 @@ import { HttpClient } from '@angular/common/http'
 import { DataService } from '../services/data.service';
 import { Stat } from '@regionstats/models';
 import { Color } from '../models/color';
-import { AsyncSubject } from 'rxjs';
+import { AsyncSubject, Subscription } from 'rxjs';
 import { ViewBox } from '../models/view-box';
 import { Data } from '@regionstats/models';
 import { Dot } from './dot';
@@ -17,25 +17,26 @@ import { Attribute } from '@angular/compiler';
 import { Calculation } from '../models/calculation';
 
 import * as helpers from '../common/helpers';
+import { ThrottleService } from '../services/throttle.service';
 
 type DotMap = { [region: string]: Dot };
 
 @Component({
     selector: 'scatterplot-component',
-    templateUrl: './scatterplot.component.html'
+    templateUrl: './scatterplot.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ScatterplotComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
 
     public width: number;
     public dotMap: { [region: string]: Dot } = {};
-
     public statX: Stat;
     public statY: Stat;
     public calcX: Calculation;
     public calcY: Calculation;
-
     public metricFormat = helpers.metricFormat;
+    public currentDot: Dot;
 
     private svgElement: SVGSVGElement;
     private sdMarkersGroup: SVGGElement;
@@ -46,15 +47,20 @@ export class ScatterplotComponent {
     private zViewboxRatio: number;
     private marginRatio: number;
     private circleOpacity: number = 0.4;
-
     private slope: number;
     private intercept: number;
-
-    public currentDot: Dot;
     private currentClickDot: Dot;
     private currentHoverDot: Dot;
+    private statSubscription: Subscription;
+    private isDestroyed
 
-    constructor(private dateService: DataService, private animateService: AnimateService, private zone: NgZone) {
+    constructor(
+        private dateService: DataService, 
+        private animateService: AnimateService, 
+        private zone: NgZone,
+        private changeDetector: ChangeDetectorRef,
+        private throttleService: ThrottleService,
+        ) {
         this.marginRatio = .95;
         this.maxZ = 4;
         this.zViewboxRatio = 5000 * this.marginRatio / this.maxZ;
@@ -79,7 +85,7 @@ export class ScatterplotComponent {
         this.svgElement.setAttribute("overflow", "hidden");
         this.svgElement.setAttribute("viewBox", "0 0 10000 10000");
         this.svgContainer.nativeElement.appendChild(this.svgElement);
-        this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
+        this.statSubscription = this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
             let stats = arr[0];
             let indexes = arr[1];
             if (!stats || stats.length < 2) {
@@ -90,6 +96,7 @@ export class ScatterplotComponent {
             this.calcX = stats[indexes[0]].calc;
             this.calcY = stats[indexes[1]].calc;
             this.statsChanged();
+            this.detectChangesThrottled();
         });
         this.setWidth();
         this.zone.runOutsideAngular(() => {
@@ -98,6 +105,19 @@ export class ScatterplotComponent {
             this.svgContainer.nativeElement.addEventListener("mouseleave", this.dotHovered.bind(this, null))
         })
     }
+
+    ngOnDestroy(){
+        this.statSubscription && this.statSubscription.unsubscribe();
+    }
+
+    private detectChangesThrottled(){
+        this.throttleService.throttle("scatterplot", () => {
+            if (!this.changeDetector["destroyed"]){
+                this.changeDetector.detectChanges();
+            }
+        }, 50);
+    }
+
     private setWidth() {
         let width = document.getElementById("scroll-container").clientWidth
         let height = document.documentElement.clientHeight;
@@ -106,6 +126,7 @@ export class ScatterplotComponent {
         } else {
             this.width = Math.round(height * .8 - 50);
         }
+        this.changeDetector.detectChanges();
     }
 
     private statsChanged() {
@@ -268,8 +289,11 @@ export class ScatterplotComponent {
         if (this.currentClickDot) {
             this.currentClickDot = this.dotMap[this.currentClickDot.region];
         }
-        this.currentDot = this.currentHoverDot ? this.currentHoverDot : this.currentClickDot;
-        this.zone.run(() => {})
+        let newCurrentDot = this.currentHoverDot ? this.currentHoverDot : this.currentClickDot;
+        if (this.currentDot != newCurrentDot){
+            this.currentDot = newCurrentDot
+            this.detectChangesThrottled();
+        }
     }
     private dotHovered(dot: Dot) {
         if (dot == this.currentDot){

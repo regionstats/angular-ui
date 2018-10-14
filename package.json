@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ng serve",
+    "dev-prod": "ng serve --aot",
     "build": "ng build --prod"
   },
   "private": true,

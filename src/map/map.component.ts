@@ -1,6 +1,6 @@
 
 import {tap, combineLatest} from 'rxjs/operators';
-import { Component, Input, SimpleChange, SimpleChanges, NgZone } from '@angular/core';
+import { Component, Input, SimpleChange, SimpleChanges, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
@@ -14,10 +14,12 @@ import { MapHelpers } from './map-helpers'
 import { Task, TaskAttribute, AnimateService } from '../services/animate.service';
 import * as helpers from '../common/helpers'
 import { Calculation } from '../models/calculation';
+import { ThrottleService } from '../services/throttle.service';
 
 @Component({
     selector: 'map-component',
-    templateUrl: './map.component.html'
+    templateUrl: './map.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MapComponent {
     @ViewChild('svgContainer') svgContainer: ElementRef;
@@ -35,20 +37,24 @@ export class MapComponent {
     public calc: Calculation;
     public heightStr: string = "80vh";
     public metricFormat = helpers.metricFormat;
-
     public currentView: string = "map";
     public selectedData: Data;
-
     public sdString: string = "";
-
     private statSubscription: Subscription
+    private isDestroyed: boolean;
 
     @Input() minColor: Color;
     @Input() midColor: Color;
     @Input() maxColor: Color;
     @Input() colorZRange: number = 2;
 
-    constructor(private dateService: DataService, private animateService: AnimateService, private zone: NgZone) {
+    constructor(
+        private dateService: DataService, 
+        private animateService: AnimateService, 
+        private zone: NgZone, 
+        private changeDetector: ChangeDetectorRef,
+        private throttleService: ThrottleService
+        ) {
         this.minColor = new Color(224, 236, 255);
         this.midColor = new Color(0, 99, 255);
         this.maxColor = new Color(0, 16, 35);
@@ -56,6 +62,9 @@ export class MapComponent {
 
     ngOnInit() {
         this.load().subscribe(() => {
+            if (this.isDestroyed){
+                return;
+            }
             this.statSubscription = this.dateService.getStats().pipe(combineLatest(this.dateService.getSelectedIndexes())).subscribe(arr => {
                 let stats = arr[0];
                 let indexes = arr[1];
@@ -77,6 +86,7 @@ export class MapComponent {
                         }
                     }
                 }
+                this.detectChangesThrottled()
             })
 
         });
@@ -94,7 +104,16 @@ export class MapComponent {
     }
 
     ngOnDestroy(){
+        this.isDestroyed = true;
         this.statSubscription && this.statSubscription.unsubscribe();
+    }
+    
+    private detectChangesThrottled(){
+        this.throttleService.throttle("map", () => {
+            if (!this.changeDetector["destroyed"]){
+                this.changeDetector.detectChanges();
+            }
+        }, 50);
     }
 
     private load() {
@@ -130,15 +149,13 @@ export class MapComponent {
             this.heightStr = "80vh";
         }
     }
-
     private setSelectedData(data: Data){
         if (this.selectedData != data){
-            this.zone.run(() => {
-                this.selectedData = data;
-                if (data){
-                    this.sdString = (data.v > this.calc.mean ? "+" : "") + helpers.metricFormat((data.v - this.calc.mean) / this.calc.sd);
-                }
-            });
+            this.selectedData = data;
+            if (data){
+                this.sdString = (data.v > this.calc.mean ? "+" : "") + helpers.metricFormat((data.v - this.calc.mean) / this.calc.sd);
+            }
+            this.detectChangesThrottled();
         }
     }
 
@@ -265,7 +282,7 @@ export class MapComponent {
         }
     }
 
-    private mouseLeave(id: number) {
+    private mouseLeave(id: number, event: MouseEvent) {
         let el = <Element>event.target;
         let idString = "filter-r-" + id;
         let rect = el.getClientRects()[0];

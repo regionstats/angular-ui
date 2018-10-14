@@ -1,4 +1,4 @@
-import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, SimpleChange, SimpleChanges, ViewChild, ElementRef, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http'
 import { DataService } from '../services/data.service';
@@ -11,7 +11,8 @@ import * as helpers from '../common/helpers';
 @Component({
     selector: 'table-component',
     templateUrl: './table.component.html',
-    styleUrls: ['./table.component.scss']
+    styleUrls: ['./table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableComponent {
     @Input("indexCount") indexCount: number;
@@ -40,7 +41,7 @@ export class TableComponent {
     private updateLineTimeout: any;
     private destroyed: boolean = false;
 
-    constructor(private dataService: DataService) {
+    constructor(private dataService: DataService, private changeDetector: ChangeDetectorRef) {
     }
 
     ngOnInit() {
@@ -58,6 +59,7 @@ export class TableComponent {
             this.intermediary = this.stats.map(z => z.regionIntermediary).find(z => z != null);
             this.regionType = this.stats.map(z => z.regionType).find(z => z != null);
             this.updateTableRows();
+            this.changeDetector.detectChanges();
             setTimeout(() => {
                 if (this.destroyed){
                     return;
@@ -139,8 +141,10 @@ export class TableComponent {
         var header = <HTMLDivElement>this.componentContainer.nativeElement;
         if (!this.fixedHeader && this.scrollContainer.scrollTop > header.offsetTop) {
             this.fixedHeader = true;
+            this.changeDetector.detectChanges();
         } else if (this.fixedHeader && this.scrollContainer.scrollTop < header.offsetTop){
             this.fixedHeader = false;
+            this.changeDetector.detectChanges();
         }
     }
 

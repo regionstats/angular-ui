@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
 import { DataService } from './services/data.service';
 
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html'
+    templateUrl: './app.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
     public currentView: "map" | "scatterplot" | "converter" | "loading" = "loading";
     public noData = false;
 
-    constructor(private http: HttpClient, private dataService: DataService) {
+    constructor(private http: HttpClient, private dataService: DataService, private changeDetector: ChangeDetectorRef) {
     }
 
     ngOnInit() {
@@ -21,6 +22,7 @@ export class AppComponent {
             } else {
                 this.currentView = "map";
             }
+            this.changeDetector.detectChanges();
         });
     }
 }

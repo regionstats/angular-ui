@@ -17,6 +17,7 @@ import { StatFormComponent } from './converter/stat-form.component';
 import { DataTabComponent } from './converter/data-tab.component';
 import { APIService } from './services/api.service';
 import { MousePopoverComponent } from './common/mouse-popover.component';
+import { ThrottleService } from './services/throttle.service';
 
 @NgModule({
     declarations: [
@@ -41,7 +42,8 @@ import { MousePopoverComponent } from './common/mouse-popover.component';
         ParserService,
         AnimateService,
         HashService,
-        APIService
+        APIService,
+        ThrottleService
     ],
     bootstrap: [AppComponent]
 })
